@@ -1,0 +1,15 @@
+﻿################################################################################
+# Este archivo .gitignore ha sido creado automáticamente por Microsoft(R) Visual Studio.
+################################################################################
+
+/Domain/Domain/bin/Debug/net9.0
+/Domain/Domain/obj
+/Infrastructure/bin/Debug/net9.0
+/Infrastructure/obj
+/Services/bin/Debug/net9.0
+/Services/obj
+/Test/UnitTest/bin
+/Test/UnitTest/obj
+/Web/bin/Debug/net9.0
+/Web/obj
+/Web/.vs/Caletapp

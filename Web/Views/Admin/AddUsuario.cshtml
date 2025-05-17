@@ -1,0 +1,60 @@
+﻿@using Services.Dtos;
+@model RegistroModel
+
+@{
+
+    ViewData["Title"] = "Crear Usuario";
+    Layout = null;
+
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Crear Usuario</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/Admin.css" />
+</head>
+<body>
+    <div class="registro-container">
+        <h2>Crear Nuevo Usuario</h2>
+        <form asp-action="AddUsuario" method="post">
+            <div class="row">
+                <div class="col-md-6">
+                    <label>Nombres</label>
+                    <input asp-for="Nombres" class="form-control" placeholder="Diligenciar nombres" />
+                    <span asp-validation-for="Nombres" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label>Apellidos</label>
+                    <input asp-for="Apellidos" class="form-control" placeholder="Diligenciar apellidos" />
+                    <span asp-validation-for="Apellidos" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label>Nombre de usuario</label>
+                    <input asp-for="NombreUsuario" class="form-control" placeholder="Diligenciar nombre de usuario" />
+                    <span asp-validation-for="NombreUsuario" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label>Correo electrónico</label>
+                    <input asp-for="CorreoElectronico" class="form-control" placeholder="Diligenciar correo" />
+                    <span asp-validation-for="CorreoElectronico" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label>Contraseña</label>
+                    <input asp-for="Contrasena" class="form-control" type="password" placeholder="Diligenciar contraseña" />
+                    <span asp-validation-for="Contrasena" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label>Confirmar contraseña</label>
+                    <input asp-for="ConfirmarContrasena" class="form-control" type="password" placeholder="Confirmar contraseña" />
+                    <span asp-validation-for="ConfirmarContrasena" class="text-danger"></span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Crear Usuario</button>
+            <a href="@Url.Action("ListUsuarios", "Admin")" class="btn btn-secondary mt-3">Volver a la lista</a>
+        </form>
+    </div>
+</body>
+</html>
