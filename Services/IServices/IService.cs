@@ -20,6 +20,14 @@ namespace Services.IServices
         Task UpdateUsuario(RegistroModel model);
         Task DeleteUsuario(Guid id);
         Task<bool> UsuarioExiste(string correo, string nombreUsuario, Guid? id = null);
+
+        // Categorias
+        Task<List<CategoriaModels>> GetAllCategorias();
+        Task<CategoriaModels> GetCategoriaById(int id);
+        Task AddCategoria(CategoriaModels categoria);
+        Task UpdateCategoria(CategoriaModels categoria);
+        Task DeleteCategoria(int id);
+
     }
 }
 
