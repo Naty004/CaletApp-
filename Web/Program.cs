@@ -18,8 +18,10 @@ public class Program
         var mappingConfiguration = new MapperConfiguration(m => m.AddProfile(new MProfile()));
         IMapper mapper = mappingConfiguration.CreateMapper();
         builder.Services.AddSingleton(mapper);
+
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddServices(builder.Configuration);
+
 
         builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
             .AddEntityFrameworkStores<ApplicationDbContext>();

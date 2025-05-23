@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,13 @@ namespace Domain
         public string DescripcionGasto { get; set; }
         public float MontoGasto { get; set; }
         public string FechaGasto { get; set; }
+
+        // Relación con Categoría
+        [ForeignKey("Categoria")]
+        public Guid CategoriaId { get; set; }
+
+        public Categorias Categoria { get; set; }
+
 
     }
 }
