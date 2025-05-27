@@ -1,27 +1,23 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services.Dtos;
-using Services.IServices;
+using System.Threading.Tasks;
 
 namespace MvcTemplate.Controllers
 {
-    public class RegistroController:Controller
+    public class RegistroController : Controller
     {
-        private IService Service { get; set; }
-        public RegistroController(IService service)
-        {
-            Service = service;
-        }
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public IActionResult Registro()
+        public RegistroController(UserManager<IdentityUser> userManager)
         {
-            return View(); // Devuelve la vista de registro
+            _userManager = userManager;
         }
 
         [HttpGet]
         public IActionResult AddUsuario()
         {
-            return View();
+            return View(); // Devuelve la vista AddUsuario.cshtml
         }
 
         [HttpPost]
@@ -29,19 +25,23 @@ namespace MvcTemplate.Controllers
         {
             if (ModelState.IsValid)
             {
-                await Service.AddUsuario(registro);
-                return RedirectToAction("GetLogin","Login");
+                var user = new IdentityUser { UserName = registro.CorreoElectronico, Email = registro.CorreoElectronico };
+
+                var result = await _userManager.CreateAsync(user, registro.Contrasena);
+                if (result.Succeeded)
+                {
+                    // Usuario creado exitosamente, redirigimos a login
+                    return RedirectToAction("GetLogin", "Login");
+                }
+
+                // Agrega los errores para mostrar en la vista
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
 
             return View(registro);
         }
-
-        public async Task<IActionResult> ListUsuarios()
-        {
-            var usuarios = await Service.GetAllUsuarios();
-            return View(usuarios);
-        }
-
-
     }
 }

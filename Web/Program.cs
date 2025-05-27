@@ -4,7 +4,6 @@ using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Services.Common;
 
-
 namespace MvcTemplate;
 
 public class Program
@@ -22,9 +21,15 @@ public class Program
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddServices(builder.Configuration);
 
-
         builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
             .AddEntityFrameworkStores<ApplicationDbContext>();
+
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.LoginPath = "/Login/GetLogin";          // Ruta a tu acción login
+            options.AccessDeniedPath = "/Login/GetLogin";   // Ruta acceso denegado (opcional)
+        });
+
         builder.Services.AddControllersWithViews();
 
         var app = builder.Build();
@@ -37,24 +42,26 @@ public class Program
         else
         {
             app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
 
         app.UseHttpsRedirection();
         app.UseRouting();
 
+        app.UseAuthentication();  // <-- Para habilitar autenticación
         app.UseAuthorization();
 
         app.MapStaticAssets();
+
         app.MapControllerRoute(
             name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}")
+            pattern: "{controller=Login}/{action=GetLogin}/{id?}")  // <-- Iniciar en login
             .WithStaticAssets();
+
         app.MapRazorPages()
            .WithStaticAssets();
-
 
         app.Run();
     }
 }
+

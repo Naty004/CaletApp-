@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MvcTemplate.Models;
 using System.Diagnostics;
@@ -13,6 +14,7 @@ public class HomeController : Controller
         _logger = logger;
     }
 
+    [Authorize] //  restringe solo el acceso a Index()
     public IActionResult Index()
     {
         return View();
