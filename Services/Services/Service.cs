@@ -67,5 +67,30 @@ namespace Services.Services
             if (usu == null) return null;
             return Mapper.Map<LoginModel>(usu);
         }
+
+        public Task<List<CategoriaModels>> GetAllCategorias()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CategoriaModels> GetCategoriaById(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task AddCategoria(CategoriaModels categoria)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateCategoria(CategoriaModels categoria)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteCategoria(int id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
