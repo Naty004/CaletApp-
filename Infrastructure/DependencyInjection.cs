@@ -1,9 +1,9 @@
-﻿using Infrastructure.Repositories.IRepositories;
+﻿using Application.Repositories;
+using Infrastructure.Repositories.IRepositories;
 using Infrastructure.Repositories.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Infrastructure.Repositories
 {
@@ -13,11 +13,14 @@ namespace Infrastructure.Repositories
         {
             var conection = configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseMySql(conection, ServerVersion.AutoDetect(conection)));
+                options.UseMySql(conection, ServerVersion.AutoDetect(conection)));
 
-
-            //adicione aqui los repositorios que va a usar en la aplicacion
+            // Repositorios usados en la aplicación
             services.AddScoped<IRepository, Repository>();
+            services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+            services.AddScoped<IGastoRepository, GastoRepository>();
+            services.AddScoped<IIngresoRepository, IngresoRepository>();
+
             return services;
         }
     }
