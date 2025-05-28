@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Infrastructure.Identity; // Importa donde está ApplicationUser
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services.Dtos;
 using System.Threading.Tasks;
@@ -7,10 +8,10 @@ namespace MvcTemplate.Controllers
 {
     public class LoginController : Controller
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public LoginController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+        public LoginController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -27,11 +28,10 @@ namespace MvcTemplate.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Buscar usuario por correo (user name)
                 var user = await _userManager.FindByEmailAsync(model.CorreoElectronico);
                 if (user != null)
                 {
-                    // Intentar login con contraseña
+                    // Aquí el PasswordSignInAsync acepta ApplicationUser
                     var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Contrasena, isPersistent: false, lockoutOnFailure: false);
                     if (result.Succeeded)
                     {

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Domain;
+using Infrastructure.Identity; // <- Aquí está ApplicationUser
 using Infrastructure.Repositories.IRepositories;
 using Services.Dtos;
 using Services.IServices;
@@ -21,10 +21,10 @@ namespace Services.Services
         }
 
         // Registrar usuario
-        public async Task AddUsuario(RegistroModel registroModel)
+        public async Task AddUsuario(RegistroModel registroModel, string password)
         {
-            var entity = Mapper.Map<Usuarios>(registroModel);
-            await Repository.AddUsuario(entity);
+            var entity = Mapper.Map<ApplicationUser>(registroModel);
+            await Repository.AddUsuario(entity, password);
         }
 
         // Obtener todos los usuarios
@@ -34,8 +34,8 @@ namespace Services.Services
             return Mapper.Map<List<RegistroModel>>(usuarios);
         }
 
-        // Obtener usuario por ID
-        public async Task<RegistroModel> GetUsuarioById(Guid id)
+        // Obtener usuario por ID (cambiar Guid a string)
+        public async Task<RegistroModel> GetUsuarioById(string id)
         {
             var usuario = await Repository.GetUsuarioById(id);
             return Mapper.Map<RegistroModel>(usuario);
@@ -44,18 +44,29 @@ namespace Services.Services
         // Actualizar usuario
         public async Task UpdateUsuario(RegistroModel model)
         {
-            var entity = Mapper.Map<Usuarios>(model);
+            var entity = Mapper.Map<ApplicationUser>(model);
             await Repository.UpdateUsuario(entity);
         }
 
-        // Eliminar usuario
-        public async Task DeleteUsuario(Guid id)
+        // Eliminar usuario (cambiar Guid a string)
+        public async Task DeleteUsuario(string id)
         {
-            await Repository.DeleteUsuario(id);
+            var usuario = await Repository.GetUsuarioById(id);
+            if (usuario == null)
+            {
+                throw new Exception("Usuario no encontrado");
+            }
+
+            var result = await Repository.DeleteUsuario(usuario);
+            if (!result.Succeeded)
+            {
+                throw new Exception("Error al eliminar usuario");
+            }
         }
 
         // Validar si el usuario o correo ya existen
-        public async Task<bool> UsuarioExiste(string correo, string nombreUsuario, Guid? id = null)
+        // Cambiar Guid? id a string id (opcional, puede ser null)
+        public async Task<bool> UsuarioExiste(string correo, string nombreUsuario, string? id = null)
         {
             return await Repository.UsuarioExiste(correo, nombreUsuario, id);
         }
@@ -68,6 +79,7 @@ namespace Services.Services
             return Mapper.Map<LoginModel>(usu);
         }
 
+        // Métodos no implementados...
         public Task<List<CategoriaModels>> GetAllCategorias()
         {
             throw new NotImplementedException();

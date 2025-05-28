@@ -1,26 +1,31 @@
-﻿using Domain;
+﻿using Infrastructure.Identity; // Para ApplicationUser
+using Microsoft.AspNetCore.Identity;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories.IRepositories
 {
     public interface IRepository
     {
-        /**Task AddMilk(Milk milk);
-        Task<List<Milk>> GetAllMilks();**/
+        // Registro de usuario con password
+        Task<IdentityResult> AddUsuario(ApplicationUser usuario, string password);
 
-        //Registro de usuarios
-        Task AddUsuario(Usuarios usuarios);
-        Task<List<Usuarios>> GetAllUsuarios();
+        // Obtener todos los usuarios
+        Task<List<ApplicationUser>> GetAllUsuarios();
 
-        //Login
-        Task<Usuarios> ValUsuario(string correo, string contrasena);
+        // Validar login
+        Task<ApplicationUser> ValUsuario(string correo, string contrasena);
 
-        //Admin
+        // Obtener usuario por Id (string)
+        Task<ApplicationUser> GetUsuarioById(string id);
 
-        Task<Usuarios> GetUsuarioById(Guid id);
-        Task UpdateUsuario(Usuarios usuario);
-        Task DeleteUsuario(Guid id);
-        Task<bool> UsuarioExiste(string correo, string nombreUsuario, Guid? id = null);
+        // Actualizar usuario
+        Task<IdentityResult> UpdateUsuario(ApplicationUser usuario);
 
+        // Eliminar usuario
+        Task<IdentityResult> DeleteUsuario(ApplicationUser usuario);
 
+        // Validar si correo o nombre de usuario ya existen
+        Task<bool> UsuarioExiste(string correo, string nombreUsuario, string id = null);
     }
 }

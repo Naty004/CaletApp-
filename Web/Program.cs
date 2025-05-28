@@ -1,5 +1,6 @@
 using Application;
 using AutoMapper;
+using Infrastructure.Identity;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Services.Common;
@@ -12,29 +13,32 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
-        //  var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        // AutoMapper
         var mappingConfiguration = new MapperConfiguration(m => m.AddProfile(new MProfile()));
         IMapper mapper = mappingConfiguration.CreateMapper();
         builder.Services.AddSingleton(mapper);
 
+        // Servicios personalizados
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddServices(builder.Configuration);
 
-        builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+        // Identity usando ApplicationUser
+        builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+            options.SignIn.RequireConfirmedAccount = false)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
+        // Configuración de la cookie de autenticación
         builder.Services.ConfigureApplicationCookie(options =>
         {
-            options.LoginPath = "/Login/GetLogin";          // Ruta a tu acción login
-            options.AccessDeniedPath = "/Login/GetLogin";   // Ruta acceso denegado (opcional)
+            options.LoginPath = "/Login/GetLogin";
+            options.AccessDeniedPath = "/Login/GetLogin";
         });
 
         builder.Services.AddControllersWithViews();
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
+        // Configuración del pipeline HTTP
         if (app.Environment.IsDevelopment())
         {
             app.UseMigrationsEndPoint();
@@ -48,20 +52,18 @@ public class Program
         app.UseHttpsRedirection();
         app.UseRouting();
 
-        app.UseAuthentication();  // <-- Para habilitar autenticación
-        app.UseAuthorization();
+        app.UseAuthentication();  // Habilita autenticación
+        app.UseAuthorization();   // Habilita autorización
 
         app.MapStaticAssets();
 
         app.MapControllerRoute(
             name: "default",
-            pattern: "{controller=Login}/{action=GetLogin}/{id?}")  // <-- Iniciar en login
+            pattern: "{controller=Login}/{action=GetLogin}/{id?}")
             .WithStaticAssets();
 
-        app.MapRazorPages()
-           .WithStaticAssets();
+        app.MapRazorPages().WithStaticAssets();
 
         app.Run();
     }
 }
-

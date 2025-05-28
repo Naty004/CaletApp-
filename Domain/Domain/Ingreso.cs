@@ -1,0 +1,23 @@
+﻿using System;
+
+namespace Domain
+{
+    public class Ingreso : BaseEntity
+    {
+        public Ingreso(string descripcion, decimal monto, DateTime fecha, string usuarioId)
+        {
+            Id = Guid.NewGuid();
+            Descripcion = descripcion;
+            Monto = monto;
+            Fecha = fecha;
+            UsuarioId = usuarioId;
+        }
+
+        public string Descripcion { get; set; }
+        public decimal Monto { get; set; }
+        public DateTime Fecha { get; set; }
+
+        // Relación con el usuario (solo por ID)
+        public string UsuarioId { get; set; }
+    }
+}

@@ -1,6 +1,8 @@
 ﻿using Domain;
+using Infrastructure.Identity;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Repositories.IRepositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,86 +12,84 @@ namespace Infrastructure.Repositories.Repositories
 {
     public class Repository : BaseRepository, IRepository
     {
-        public Repository(ApplicationDbContext _context) : base(_context)
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public Repository(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+            : base(context)
         {
+            _userManager = userManager;
         }
 
-        // Registro de usuarios
-        public async Task AddUsuario(Usuarios usuarios)
+        // Registrar usuario
+        public async Task<IdentityResult> AddUsuario(ApplicationUser usuario, string password)
         {
-            try
+            var result = await _userManager.CreateAsync(usuario, password);
+            if (result.Succeeded)
             {
-                Begin();
-                context.Usuarios.Add(usuarios);
-                await context.SaveChangesAsync();
                 Commit();
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error al registrar usuario", ex);
-            }
+            return result;
         }
 
-        public Task<List<Usuarios>> GetAllUsuarios()
+        // Obtener todos los usuarios
+        public async Task<List<ApplicationUser>> GetAllUsuarios()
         {
-            return context.Usuarios.ToListAsync();
+            return await _userManager.Users.ToListAsync();
         }
 
-        // Obtener usuario por ID
-        public async Task<Usuarios> GetUsuarioById(Guid id)
+        // Obtener usuario por Id (string, porque Identity usa string para Id)
+        public async Task<ApplicationUser> GetUsuarioById(string id)
         {
-            return await context.Usuarios.FindAsync(id);
+            return await _userManager.FindByIdAsync(id);
         }
 
         // Actualizar usuario
-        public async Task UpdateUsuario(Usuarios usuario)
+        public async Task<IdentityResult> UpdateUsuario(ApplicationUser usuario)
         {
-            try
+            var result = await _userManager.UpdateAsync(usuario);
+            if (result.Succeeded)
             {
-                Begin();
-                context.Usuarios.Update(usuario);
-                await context.SaveChangesAsync();
                 Commit();
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error al actualizar usuario", ex);
-            }
+            return result;
         }
 
         // Eliminar usuario
-        public async Task DeleteUsuario(Guid id)
+        public async Task<IdentityResult> DeleteUsuario(ApplicationUser usuario)
         {
-            try
+            var result = await _userManager.DeleteAsync(usuario);
+            if (result.Succeeded)
             {
-                Begin();
-                var usuario = await context.Usuarios.FindAsync(id);
-                if (usuario != null)
-                {
-                    context.Usuarios.Remove(usuario);
-                    await context.SaveChangesAsync();
-                    Commit();
-                }
+                Commit();
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error al eliminar usuario", ex);
-            }
+            return result;
         }
 
         // Validar si correo o nombre de usuario ya existen
-        public async Task<bool> UsuarioExiste(string correo, string nombreUsuario, Guid? id = null)
+        public async Task<bool> UsuarioExiste(string correo, string nombreUsuario, string id = null)
         {
-            return await context.Usuarios.AnyAsync(u =>
-                (u.CorreoElectronico == correo || u.NombreUsuario == nombreUsuario) &&
-                (!id.HasValue || u.Id != id.Value));
+            var userByEmail = await _userManager.FindByEmailAsync(correo);
+            if (userByEmail != null && userByEmail.Id != id)
+                return true;
+
+            var userByName = await _userManager.FindByNameAsync(nombreUsuario);
+            if (userByName != null && userByName.Id != id)
+                return true;
+
+            return false;
         }
 
-        // Login
-        public async Task<Usuarios> ValUsuario(string correo, string contrasena)
+        // Validar login - aquí solo validamos email y password
+        public async Task<ApplicationUser> ValUsuario(string correo, string contrasena)
         {
-            return await context.Usuarios.FirstOrDefaultAsync(u =>
-u.CorreoElectronico == correo && u.Contrasena == contrasena);
+            var usuario = await _userManager.FindByEmailAsync(correo);
+            if (usuario != null)
+            {
+                var isValid = await _userManager.CheckPasswordAsync(usuario, contrasena);
+                if (isValid)
+                    return usuario;
+            }
+            return null;
         }
     }
 }

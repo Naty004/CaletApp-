@@ -1,4 +1,6 @@
 ﻿using Services.Dtos;
+using Infrastructure.Identity; // <-- Aquí está ApplicationUser
+using Domain; // Asumiendo que Domain.Milk está bien
 
 namespace Services.Common
 {
@@ -19,12 +21,13 @@ namespace Services.Common
 
         private void RegistroMapper()
         {
-            CreateMap<Domain.Usuarios, RegistroModel>().ReverseMap();
+            CreateMap<ApplicationUser, RegistroModel>().ReverseMap();
         }
 
         private void LoginMapper()
         {
-            CreateMap<Domain.Usuarios, LoginModel>().ReverseMap();
+            CreateMap<ApplicationUser, LoginModel>().ReverseMap();
         }
     }
 }
+
