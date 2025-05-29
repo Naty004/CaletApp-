@@ -68,7 +68,7 @@ public class Program
 
         // MapStaticAssets y WithStaticAssets son métodos personalizados,
         // asegúrate que están implementados o comenta estas líneas
-        // app.MapStaticAssets();
+         app.MapStaticAssets();
 
         app.MapControllerRoute(
             name: "default",
