@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services.Dtos;
 using System.Threading.Tasks;
@@ -7,9 +8,9 @@ namespace MvcTemplate.Controllers
 {
     public class RegistroController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public RegistroController(UserManager<IdentityUser> userManager)
+        public RegistroController(UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
@@ -25,16 +26,20 @@ namespace MvcTemplate.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new IdentityUser { UserName = registro.CorreoElectronico, Email = registro.CorreoElectronico };
+                var user = new ApplicationUser
+                {
+                    UserName = registro.CorreoElectronico,
+                    Email = registro.CorreoElectronico,
+                    Nombres = registro.Nombres,       // <-- Asignar nombre
+                    Apellidos = registro.Apellidos    // <-- Asignar apellido
+                };
 
                 var result = await _userManager.CreateAsync(user, registro.Contrasena);
                 if (result.Succeeded)
                 {
-                    // Usuario creado exitosamente, redirigimos a login
                     return RedirectToAction("GetLogin", "Login");
                 }
 
-                // Agrega los errores para mostrar en la vista
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
