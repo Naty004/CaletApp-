@@ -1,82 +1,79 @@
-﻿@{
+﻿@model dynamic
+@{
     ViewData["Title"] = "Inicio";
-    Layout = "~/Views/Shared/_Layout.cshtml"; // Asegúrate de que este layout exista
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="dashboard-container">
-    <!-- Encabezado -->
-    <div class="header bg-blue text-white p-3 d-flex justify-content-between align-items-center">
+    <div class="header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
         <h2 class="mb-0">Panel de Finanzas</h2>
         <div>
             <a href="/Account/Logout" class="btn btn-outline-light me-2">Cerrar Sesión</a>
-            <button class="btn btn-light text-primary">Agregar Dinero</button>
+            <a href="@Url.Action("Create", "Entrada")" class="btn btn-light text-primary">Agregar Dinero</a>
         </div>
     </div>
 
-    <!-- Totales -->
     <div class="totals row text-center mt-4 mb-4">
         <div class="col">
             <h4>Total Disponible</h4>
-            <p class="fs-4 text-success">$0</p>
+            <p class="fs-4 text-success">@String.Format("{0:C}", Model.TotalIngresos)</p>
         </div>
         <div class="col">
             <h4>Gastos Totales</h4>
-            <p class="fs-4 text-danger">$0</p>
+            <p class="fs-4 text-danger">@String.Format("{0:C}", Model.TotalGastos)</p>
         </div>
         <div class="col">
             <h4>Saldo Actual</h4>
-            <p class="fs-4 text-primary">$0</p>
+            <p class="fs-4 text-primary">@String.Format("{0:C}", Model.SaldoActual)</p>
         </div>
     </div>
 
     <div class="row">
-        <!-- Menú lateral -->
         <div class="col-md-3 border-end">
             <h5>Categorías</h5>
             <ul class="list-group">
-                <li class="list-group-item active">Mercado</li>
-                <li class="list-group-item">Transporte</li>
-                <li class="list-group-item">Universidad</li>
-                <li class="list-group-item">Arriendo</li>
+                @foreach(var cat in Model.Categorias)
+                {
+                    <li class="list-group-item">@cat.Nombre</li>
+                }
             </ul>
+            <a href="@Url.Action("Index", "Categoria")" class="btn btn-primary mt-3 w-100">Gestionar Categorías</a>
         </div>
 
-        <!-- Panel central -->
         <div class="col-md-9">
-            <!-- Info de categoría -->
-            <div class="mb-3">
-                <h4>Mercado</h4>
-                <p>Gastos relacionados con mercado y comida.</p>
-                <p>Límite mensual: $0 (0% del ingreso total)</p>
-                <div class="progress mb-3" style="height: 20px;">
-                    <div class="progress-bar bg-primary" style="width: 0%">0%</div>
-                </div>
-            </div>
-
-            <!-- Tabla de gastos -->
-            <div>
-                <h5>Gastos</h5>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Descripción</th>
-                            <th>Monto</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Sin movimientos -->
+            <h4>Últimos Gastos</h4>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if(Model.Gastos.Count == 0)
+                    {
                         <tr>
                             <td colspan="3" class="text-center text-muted">Sin movimientos registrados</td>
                         </tr>
-                    </tbody>
-                </table>
-            </div>
+                    }
+                    else
+                    {
+                        foreach(var gasto in Model.Gastos)
+                        {
+                            <tr>
+                                <td>@gasto.Fecha.ToShortDateString()</td>
+                                <td>@gasto.Descripcion</td>
+                                <td class="text-danger">@String.Format("{0:C}", gasto.Monto)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
 
-            <!-- Botones -->
             <div class="mt-3">
-                <button class="btn btn-primary">Agregar Gasto</button>
-                <button class="btn btn-danger ms-2">Eliminar Categoría</button>
+                <a href="@Url.Action("Index", "Gasto")" class="btn btn-primary">Ver Todos los Gastos</a>
+                <a href="@Url.Action("Create", "Gasto")" class="btn btn-success ms-2">Agregar Gasto</a>
             </div>
         </div>
     </div>

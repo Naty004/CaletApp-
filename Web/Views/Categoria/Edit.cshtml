@@ -1,0 +1,45 @@
+@model Web.ViewModels.CategoriaViewModel
+
+@{
+    ViewData["Title"] = "Editar Categoría";
+}
+
+<div class="container mt-4">
+    <h1>Editar Categoría: @Model.Nombre</h1>
+
+    <form asp-action="Edit" method="post" class="mt-4 needs-validation" novalidate>
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label asp-for="PorcentajeMaximoMensual" class="form-label">Porcentaje Máximo Mensual (%)</label>
+            <input asp-for="PorcentajeMaximoMensual" type="number" class="form-control" min="0" max="100" step="0.01" required />
+            <div class="invalid-feedback">
+                Por favor ingresa un porcentaje entre 0 y 100.
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation')
+
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+}

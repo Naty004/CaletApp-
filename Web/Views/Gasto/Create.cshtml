@@ -1,0 +1,77 @@
+@{
+    ViewData["Title"] = "Agregar Nuevo Gasto";
+    var categorias = ViewBag.Categorias as List<Domain.Categoria>;
+}
+
+<div class="container mt-4">
+    <h1>Agregar Nuevo Gasto</h1>
+
+    <form asp-action="Create" method="post" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripción</label>
+            <input type="text" class="form-control" id="descripcion" name="descripcion" required maxlength="200" />
+            <div class="invalid-feedback">
+                Por favor ingresa una descripción.
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="monto" class="form-label">Monto</label>
+            <input type="number" class="form-control" id="monto" name="monto" step="0.01" min="0.01" required />
+            <div class="invalid-feedback">
+                Por favor ingresa un monto válido mayor a 0.
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="fecha" class="form-label">Fecha</label>
+            <input type="date" class="form-control" id="fecha" name="fecha" required />
+            <div class="invalid-feedback">
+                Por favor selecciona una fecha válida.
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="categoriaId" class="form-label">Categoría</label>
+            <select class="form-select" id="categoriaId" name="categoriaId" required>
+                <option value="" selected disabled>Selecciona una categoría</option>
+                @if (categorias != null)
+                {
+                    foreach (var cat in categorias)
+                    {
+                        <option value="@cat.Id">@cat.Nombre</option>
+                    }
+                }
+            </select>
+            <div class="invalid-feedback">
+                Por favor selecciona una categoría.
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar Gasto</button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+            'use strict'
+
+            const forms = document.querySelectorAll('.needs-validation')
+
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+}

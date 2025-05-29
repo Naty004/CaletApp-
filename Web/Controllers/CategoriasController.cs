@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Linq;
+using Web.ViewModels;  // <- Importa el ViewModel
 
 namespace Web.Controllers
 {
@@ -27,8 +29,20 @@ namespace Web.Controllers
         public async Task<IActionResult> Index()
         {
             var usuarioId = ObtenerUsuarioId();
-            var categorias = await _categoriaService.ObtenerCategoriasConTotalesAsync(usuarioId);
-            return View(categorias);
+            var categoriasConTotales = await _categoriaService.ObtenerCategoriasConTotalesAsync(usuarioId);
+
+            // Convertimos la tupla a ViewModel
+            var modelo = categoriasConTotales.Select(c => new CategoriaViewModel
+            {
+                Id = c.Categoria.Id,
+                Nombre = c.Categoria.Nombre,
+                Descripcion = c.Categoria.Descripcion,
+                PorcentajeMaximoMensual = c.Categoria.PorcentajeMaximoMensual,
+                GastoActual = c.GastoActual,
+                GastoMaximo = c.GastoMaximo
+            }).ToList();
+
+            return View(modelo);
         }
 
         // GET: /Categoria/Create
