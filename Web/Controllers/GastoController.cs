@@ -1,155 +1,191 @@
-using Application.Services.IServices;
+using Application.Services;
 using Domain;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
+using Web.Models;
+using Infrastructure.Identity;
 
-namespace Web.Controllers
+
+
+namespace WebApp.Controllers
 {
-    [Authorize]
     public class GastoController : Controller
     {
         private readonly IGastoService _gastoService;
-        private readonly ICategoriaService _categoriaService;
+       private readonly UserManager<ApplicationUser> _userManager;
 
-        public GastoController(IGastoService gastoService, ICategoriaService categoriaService)
-        {
-            _gastoService = gastoService;
-            _categoriaService = categoriaService;
-        }
+public GastoController(IGastoService gastoService, UserManager<ApplicationUser> userManager)
+{
+    _gastoService = gastoService;
+    _userManager = userManager;
+}
 
-        private string ObtenerUsuarioId()
-        {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
-        }
 
         // GET: /Gasto
         public async Task<IActionResult> Index()
         {
-            var usuarioId = ObtenerUsuarioId();
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Unauthorized();
+
             var gastos = await _gastoService.ObtenerGastosPorUsuarioAsync(usuarioId);
-            return View(gastos.OrderByDescending(g => g.Fecha));
+            return View(gastos);
         }
 
         // GET: /Gasto/Create
         public async Task<IActionResult> Create()
         {
-            var usuarioId = ObtenerUsuarioId();
-            var categorias = await _categoriaService.ObtenerCategoriasConTotalesAsync(usuarioId);
-            ViewBag.Categorias = categorias.Select(c => c.Categoria).ToList();
-            return View();
+            var categorias = await _gastoService.ObtenerGastosPorUsuarioAsync(await ObtenerUsuarioIdAsync());
+
+            var vm = new GastoCreateViewModel
+            {
+                Fecha = DateTime.Today,
+                Categorias = categorias
+                    .Select(g => g.Categoria)
+                    .Distinct()
+                    .Select(c => new GastoCreateViewModel.CategoriaItem
+                    {
+                        Id = c.Id,
+                        Nombre = c.Nombre
+                    })
+            };
+
+            return View(vm);
         }
 
         // POST: /Gasto/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(string descripcion, decimal monto, DateTime fecha, Guid categoriaId)
+        public async Task<IActionResult> Create(GastoCreateViewModel model)
         {
-            if (string.IsNullOrWhiteSpace(descripcion) || monto <= 0 || fecha == default || categoriaId == Guid.Empty)
-            {
-                ModelState.AddModelError("", "Datos inválidos para crear el gasto.");
-            }
-            
-            var usuarioId = ObtenerUsuarioId();
-            var categoria = await _categoriaService.ObtenerCategoriaPorIdAsync(categoriaId);
-
-            if (categoria == null || categoria.UsuarioId != usuarioId)
-            {
-                ModelState.AddModelError("", "Categoría no encontrada o no pertenece al usuario.");
-            }
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Unauthorized();
 
             if (!ModelState.IsValid)
             {
-                var categorias = await _categoriaService.ObtenerCategoriasConTotalesAsync(usuarioId);
-                ViewBag.Categorias = categorias.Select(c => c.Categoria).ToList();
-                return View();
+                model.Categorias = await ObtenerCategoriasParaViewModel(usuarioId);
+                return View(model);
             }
 
-            var gasto = new Gasto(descripcion, monto, fecha, categoriaId, usuarioId);
-            await _gastoService.AgregarGastoAsync(gasto);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _gastoService.AdicionarGastoAsync(
+                    model.Descripcion,
+                    model.Monto,
+                    model.Fecha,
+                    model.CategoriaId,
+                    usuarioId
+                );
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                model.Categorias = await ObtenerCategoriasParaViewModel(usuarioId);
+                return View(model);
+            }
         }
 
-        // GET: /Gasto/Edit/{id}
-        public async Task<IActionResult> Edit(Guid id)
+        // GET: /Gasto/Eliminar/{id}
+        public async Task<IActionResult> Eliminar(Guid id)
         {
-            var gasto = await _gastoService.ObtenerGastoPorIdAsync(id);
-            var usuarioId = ObtenerUsuarioId();
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Unauthorized();
 
-            if (gasto == null || gasto.UsuarioId != usuarioId)
-                return NotFound();
+            var gastos = await _gastoService.ObtenerGastosPorUsuarioAsync(usuarioId);
+            var gasto = gastos.FirstOrDefault(g => g.Id == id);
 
-            var categorias = await _categoriaService.ObtenerCategoriasConTotalesAsync(usuarioId);
-            ViewBag.Categorias = categorias.Select(c => c.Categoria).ToList();
+            if (gasto == null) return NotFound();
 
             return View(gasto);
         }
 
-        // POST: /Gasto/Edit/{id}
-        [HttpPost]
+        // POST: /Gasto/Eliminar/{id}
+        [HttpPost, ActionName("Eliminar")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, string descripcion, decimal monto, DateTime fecha, Guid categoriaId)
+        public async Task<IActionResult> EliminarConfirmado(Guid id)
         {
-            var usuarioId = ObtenerUsuarioId();
-
-            if (string.IsNullOrWhiteSpace(descripcion) || monto <= 0 || fecha == default || categoriaId == Guid.Empty)
+            try
             {
-                ModelState.AddModelError("", "Datos inválidos para editar el gasto.");
+                await _gastoService.EliminarGastoYReajustarAsync(id);
+                return RedirectToAction(nameof(Index));
             }
-
-            var gastoExistente = await _gastoService.ObtenerGastoPorIdAsync(id);
-            var categoria = await _categoriaService.ObtenerCategoriaPorIdAsync(categoriaId);
-
-            if (gastoExistente == null || gastoExistente.UsuarioId != usuarioId)
-                return NotFound();
-
-            if (categoria == null || categoria.UsuarioId != usuarioId)
+            catch (Exception ex)
             {
-                ModelState.AddModelError("", "Categoría no válida.");
+                ModelState.AddModelError("", ex.Message);
+                return View();
             }
-
-            if (!ModelState.IsValid)
-            {
-                var categorias = await _categoriaService.ObtenerCategoriasConTotalesAsync(usuarioId);
-                ViewBag.Categorias = categorias.Select(c => c.Categoria).ToList();
-                return View(gastoExistente);
-            }
-
-            // Actualizamos las propiedades
-            gastoExistente.Descripcion = descripcion;
-            gastoExistente.Monto = monto;
-            gastoExistente.Fecha = fecha;
-            gastoExistente.CategoriaId = categoriaId;
-
-            // Aquí idealmente actualizarías usando el servicio, pero el interface no tiene Update explícito.
-            // Por ahora, si implementas un método UpdateAsync en el servicio, lo llamarías aquí.
-            // Como alternativa, podríamos eliminar y agregar, pero mejor que agregues Update en servicio.
-
-            // Supongamos que implementas Update en el servicio:
-            // await _gastoService.ActualizarGastoAsync(gastoExistente);
-
-            // Por ahora, para continuar, omitimos Update.
-
-            // Retornamos a la lista
-            return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Gasto/Delete/{id}
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(Guid id)
+        // GET: /Gasto/Total
+        public async Task<IActionResult> Total()
         {
-            var usuarioId = ObtenerUsuarioId();
-            var gasto = await _gastoService.ObtenerGastoPorIdAsync(id);
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Unauthorized();
 
-            if (gasto == null || gasto.UsuarioId != usuarioId)
-                return NotFound();
+            var total = await _gastoService.ObtenerGastoTotalPorUsuarioAsync(usuarioId);
+            ViewBag.Tipo = "Total";
+            return View("TotalView", total);
+        }
 
-            await _gastoService.EliminarGastoAsync(id);
-            return RedirectToAction(nameof(Index));
+        // GET: /Gasto/Mensual?mes=5&anio=2025
+        public async Task<IActionResult> Mensual(int mes, int anio)
+        {
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Unauthorized();
+
+            var total = await _gastoService.ObtenerGastoTotalMensualAsync(usuarioId, mes, anio);
+            ViewBag.Tipo = $"Mensual ({mes}/{anio})";
+            return View("TotalView", total);
+        }
+
+        // GET: /Gasto/Semanal?fecha=2025-05-27
+        public async Task<IActionResult> Semanal(DateTime fecha)
+        {
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Unauthorized();
+
+            var total = await _gastoService.ObtenerGastoTotalSemanalAsync(usuarioId, fecha);
+            ViewBag.Tipo = $"Semanal ({fecha:dd/MM/yyyy})";
+            return View("TotalView", total);
+        }
+
+        // GET: /Gasto/Diario?fecha=2025-05-27
+        public async Task<IActionResult> Diario(DateTime fecha)
+        {
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Unauthorized();
+
+            var total = await _gastoService.ObtenerGastoTotalDiarioAsync(usuarioId, fecha);
+            ViewBag.Tipo = $"Diario ({fecha:dd/MM/yyyy})";
+            return View("TotalView", total);
+        }
+
+        private async Task<string?> ObtenerUsuarioIdAsync()
+        {
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                return user?.Id;
+            }
+            return null;
+        }
+
+        private async Task<IEnumerable<GastoCreateViewModel.CategoriaItem>> ObtenerCategoriasParaViewModel(string usuarioId)
+        {
+            var gastos = await _gastoService.ObtenerGastosPorUsuarioAsync(usuarioId);
+
+            return gastos
+                .Select(g => g.Categoria)
+                .Distinct()
+                .Select(c => new GastoCreateViewModel.CategoriaItem
+                {
+                    Id = c.Id,
+                    Nombre = c.Nombre
+                });
         }
     }
 }

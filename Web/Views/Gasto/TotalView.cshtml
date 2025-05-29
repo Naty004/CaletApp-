@@ -1,0 +1,13 @@
+@model decimal
+
+@{
+    ViewData["Title"] = "Total de Gastos";
+}
+
+<h2>@ViewBag.Tipo</h2>
+
+<div class="alert alert-info" style="font-size: 1.5rem; font-weight: bold;">
+    Total: @Model.ToString("C")
+</div>
+
+<a asp-action="Index" class="btn btn-primary">Volver a la lista</a>

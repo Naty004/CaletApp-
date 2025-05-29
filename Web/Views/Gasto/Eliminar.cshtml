@@ -1,0 +1,35 @@
+@model Domain.Gasto
+
+@{
+    ViewData["Title"] = "Eliminar Gasto";
+}
+
+<h2>¿Estás seguro de que deseas eliminar este gasto?</h2>
+
+<div class="alert alert-warning">
+    Esta acción no se puede deshacer.
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Descripción</dt>
+            <dd class="col-sm-9">@Model.Descripcion</dd>
+
+            <dt class="col-sm-3">Monto</dt>
+            <dd class="col-sm-9">@Model.Monto.ToString("C")</dd>
+
+            <dt class="col-sm-3">Fecha</dt>
+            <dd class="col-sm-9">@Model.Fecha.ToString("dd/MM/yyyy")</dd>
+
+            <dt class="col-sm-3">Categoría</dt>
+            <dd class="col-sm-9">@Model.Categoria?.Nombre</dd>
+        </dl>
+
+        <form asp-action="EliminarConfirmado" method="post">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>

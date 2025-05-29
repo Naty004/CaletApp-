@@ -4,14 +4,15 @@ namespace Domain
 {
     public class Ingreso : BaseEntity
     {
-        public Ingreso(string descripcion, decimal monto, DateTime fecha, string usuarioId)
+        public Ingreso(decimal monto, DateTime fecha, string usuarioId, string? descripcion = null)
         {
             Id = Guid.NewGuid();
-            Descripcion = descripcion;
             Monto = monto;
             Fecha = fecha;
             UsuarioId = usuarioId;
+            Descripcion = descripcion;
         }
+
 
         public string Descripcion { get; set; }
         public decimal Monto { get; set; }

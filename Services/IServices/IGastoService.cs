@@ -3,38 +3,29 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Application.Services.IServices
+namespace Application.Services
 {
     public interface IGastoService
     {
-        /// <summary>
-        /// Agrega un nuevo gasto a una categoría.
-        /// </summary>
-        Task<Gasto> AgregarGastoAsync(Gasto gasto);
-
-        /// <summary>
-        /// Obtiene todos los gastos de un usuario.
-        /// </summary>
+        // Visualizar todos los gastos por usuario
         Task<IEnumerable<Gasto>> ObtenerGastosPorUsuarioAsync(string usuarioId);
 
-        /// <summary>
-        /// Obtiene los gastos totales de un usuario.
-        /// </summary>
-        Task<decimal> ObtenerGastoTotalAsync(string usuarioId);
+        // Visualizar gastos totales (monto acumulado)
+        Task<decimal> ObtenerGastoTotalPorUsuarioAsync(string usuarioId);
 
-        /// <summary>
-        /// Obtiene los gastos del usuario filtrados por rango de fechas.
-        /// </summary>
-        Task<IEnumerable<Gasto>> ObtenerGastosPorRangoFechaAsync(string usuarioId, DateTime fechaInicio, DateTime fechaFin);
+        // Visualizar gastos mensuales
+        Task<decimal> ObtenerGastoTotalMensualAsync(string usuarioId, int mes, int anio);
 
-        /// <summary>
-        /// Elimina un gasto por su Id.
-        /// </summary>
-        Task<bool> EliminarGastoAsync(Guid gastoId);
+        // Visualizar gastos semanales
+        Task<decimal> ObtenerGastoTotalSemanalAsync(string usuarioId, DateTime semanaReferencia);
 
-        /// <summary>
-        /// Obtiene un gasto específico por Id.
-        /// </summary>
-        Task<Gasto?> ObtenerGastoPorIdAsync(Guid gastoId);
+        // Visualizar gastos diarios
+        Task<decimal> ObtenerGastoTotalDiarioAsync(string usuarioId, DateTime dia);
+
+        // Agregar un gasto
+        Task<Gasto> AdicionarGastoAsync(string descripcion, decimal monto, DateTime fecha, Guid categoriaId, string usuarioId);
+
+        // Eliminar gasto con devolución y reajuste
+        Task<IEnumerable<(Categoria Categoria, decimal GastoActual, decimal GastoMaximo)>> EliminarGastoYReajustarAsync(Guid gastoId);
     }
 }

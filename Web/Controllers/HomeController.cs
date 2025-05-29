@@ -1,58 +1,70 @@
-using Application.Services.IServices;
-using Microsoft.AspNetCore.Authorization;
+using Application.Services;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace MvcTemplate.Controllers
+namespace WebApp.Controllers
 {
-    [Authorize]
     public class HomeController : Controller
     {
         private readonly IGastoService _gastoService;
-        private readonly ICategoriaService _categoriaService;
-        private readonly IEntradaService _entradaService;
+        private readonly IIngresoService _ingresoService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public HomeController(IGastoService gastoService, ICategoriaService categoriaService, IEntradaService entradaService)
+        public HomeController(
+            IGastoService gastoService,
+            IIngresoService ingresoService,
+            UserManager<ApplicationUser> userManager)
         {
             _gastoService = gastoService;
-            _categoriaService = categoriaService;
-            _entradaService = entradaService;
-        }
-
-        private string ObtenerUsuarioId()
-        {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+            _ingresoService = ingresoService;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
         {
-            var usuarioId = ObtenerUsuarioId();
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null)
+                return RedirectToAction("GetLogin", "Login");
 
-            // Obtiene datos
-            var gastos = await _gastoService.ObtenerGastosPorUsuarioAsync(usuarioId);
-            var categorias = await _categoriaService.ObtenerCategoriasConTotalesAsync(usuarioId);
-            var ingresos = await _entradaService.ObtenerIngresosPorUsuarioAsync(usuarioId);
+            var hoy = DateTime.Now;
+            var mes = hoy.Month;
+            var anio = hoy.Year;
 
-            // Totales
-            var totalIngresos = ingresos.Sum(i => i.Monto);
-            var totalGastos = gastos.Sum(g => g.Monto);
-            var saldoActual = totalIngresos - totalGastos;
+            var ingresoTotal = await _ingresoService.ObtenerIngresoTotalMensualAsync(usuarioId, mes, anio);
+            var gastoTotal = await _gastoService.ObtenerGastoTotalMensualAsync(usuarioId, mes, anio);
+            var categoriasConGasto = await _ingresoService.RecalcularTopesGastoAsync(usuarioId, mes, anio);
 
-            // Modelo dinámico para la vista
+            var porcentajeTotalGastado = ingresoTotal == 0 ? 0 : Math.Round((double)(gastoTotal / ingresoTotal) * 100, 2);
+
             var model = new
             {
-                Gastos = gastos.OrderByDescending(g => g.Fecha).Take(5).ToList(), // últimos 5 gastos
-                Categorias = categorias.Select(c => c.Categoria).ToList(),
-                TotalIngresos = totalIngresos,
-                TotalGastos = totalGastos,
-                SaldoActual = saldoActual
+                IngresoTotal = ingresoTotal,
+                GastoTotal = gastoTotal,
+                PorcentajeGastado = porcentajeTotalGastado,
+                Categorias = categoriasConGasto.Select(c => new
+                {
+                    Nombre = c.Categoria.Nombre,
+                    GastoActual = c.GastoActual,
+                    Tope = c.GastoMaximo,
+                    Porcentaje = c.GastoMaximo == 0 ? 0 : Math.Round((double)(c.GastoActual / c.GastoMaximo) * 100, 2)
+                }).ToList()
             };
 
             return View(model);
         }
 
-        // Otras acciones existentes...
+        private async Task<string?> ObtenerUsuarioIdAsync()
+        {
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                return user?.Id;
+            }
+            return null;
+        }
     }
 }

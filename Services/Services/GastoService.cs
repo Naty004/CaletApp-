@@ -1,70 +1,77 @@
 using Application.Repositories;
-using Application.Services.IServices;
 using Domain;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Application.Services.Services
+namespace Application.Services
 {
     public class GastoService : IGastoService
     {
         private readonly IGastoRepository _gastoRepository;
+        private readonly IIngresoService _ingresoService;
 
-        public GastoService(IGastoRepository gastoRepository)
+        public GastoService(IGastoRepository gastoRepository, IIngresoService ingresoService)
         {
             _gastoRepository = gastoRepository;
+            _ingresoService = ingresoService;
         }
 
-        public async Task<Gasto> AgregarGastoAsync(Gasto gasto)
+        public async Task<Gasto> AdicionarGastoAsync(string descripcion, decimal monto, DateTime fecha, Guid categoriaId, string usuarioId)
         {
-            if (gasto == null)
-                throw new ArgumentNullException(nameof(gasto));
+            if (string.IsNullOrWhiteSpace(descripcion))
+                throw new ArgumentException("La descripción no puede estar vacía.");
 
-            if (gasto.Monto <= 0)
-                throw new ArgumentException("El monto del gasto debe ser mayor que cero.", nameof(gasto.Monto));
+            if (monto <= 0)
+                throw new ArgumentException("El monto debe ser mayor a cero.");
 
-            if (string.IsNullOrEmpty(gasto.UsuarioId))
-                throw new ArgumentException("El usuarioId no puede estar vacío.", nameof(gasto.UsuarioId));
-
+            var gasto = new Gasto(descripcion, monto, fecha, categoriaId, usuarioId);
             return await _gastoRepository.AdicionarGastoAsync(gasto);
         }
 
         public async Task<IEnumerable<Gasto>> ObtenerGastosPorUsuarioAsync(string usuarioId)
         {
-            if (string.IsNullOrEmpty(usuarioId))
-                throw new ArgumentException("El usuarioId no puede estar vacío.", nameof(usuarioId));
-
             return await _gastoRepository.ObtenerGastosPorUsuarioAsync(usuarioId);
         }
 
-        public async Task<decimal> ObtenerGastoTotalAsync(string usuarioId)
+        public async Task<decimal> ObtenerGastoTotalPorUsuarioAsync(string usuarioId)
         {
-            if (string.IsNullOrEmpty(usuarioId))
-                throw new ArgumentException("El usuarioId no puede estar vacío.", nameof(usuarioId));
-
             return await _gastoRepository.ObtenerGastoTotalPorUsuarioAsync(usuarioId);
         }
 
-        public async Task<IEnumerable<Gasto>> ObtenerGastosPorRangoFechaAsync(string usuarioId, DateTime fechaInicio, DateTime fechaFin)
+        public async Task<decimal> ObtenerGastoTotalMensualAsync(string usuarioId, int mes, int anio)
         {
-            if (string.IsNullOrEmpty(usuarioId))
-                throw new ArgumentException("El usuarioId no puede estar vacío.", nameof(usuarioId));
-
-            if (fechaFin < fechaInicio)
-                throw new ArgumentException("La fecha fin debe ser mayor o igual a la fecha inicio.");
-
-            return await _gastoRepository.ObtenerGastosPorRangoFechaAsync(usuarioId, fechaInicio, fechaFin);
+            return await _gastoRepository.ObtenerGastoTotalMensualAsync(usuarioId, mes, anio);
         }
 
-        public async Task<bool> EliminarGastoAsync(Guid gastoId)
+        public async Task<decimal> ObtenerGastoTotalSemanalAsync(string usuarioId, DateTime semanaReferencia)
         {
-            return await _gastoRepository.EliminarGastoAsync(gastoId);
+            return await _gastoRepository.ObtenerGastoTotalSemanalAsync(usuarioId, semanaReferencia);
         }
 
-        public async Task<Gasto?> ObtenerGastoPorIdAsync(Guid gastoId)
+        public async Task<decimal> ObtenerGastoTotalDiarioAsync(string usuarioId, DateTime dia)
         {
-            return await _gastoRepository.ObtenerGastoPorIdAsync(gastoId);
+            return await _gastoRepository.ObtenerGastoTotalDiarioAsync(usuarioId, dia);
+        }
+
+        public async Task<IEnumerable<(Categoria Categoria, decimal GastoActual, decimal GastoMaximo)>> EliminarGastoYReajustarAsync(Guid gastoId)
+        {
+            var gasto = await _gastoRepository.ObtenerGastoPorIdAsync(gastoId);
+            if (gasto == null)
+                throw new Exception("Gasto no encontrado.");
+
+            var usuarioId = gasto.UsuarioId;
+            var mes = gasto.Fecha.Month;
+            var anio = gasto.Fecha.Year;
+
+            var eliminado = await _gastoRepository.EliminarGastoAsync(gastoId);
+            if (!eliminado)
+                throw new Exception("No se pudo eliminar el gasto.");
+
+            // Recalcular topes para actualizar la disponibilidad real
+            var categoriasConTotales = await _ingresoService.RecalcularTopesGastoAsync(usuarioId, mes, anio);
+
+            return categoriasConTotales;
         }
     }
 }

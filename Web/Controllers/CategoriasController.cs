@@ -1,48 +1,44 @@
-﻿using Application.Services.IServices;
+﻿using Application.Services;
 using Domain;
-using Microsoft.AspNetCore.Authorization;
+using Infrastructure.Identity;   // Para ApplicationUser
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Linq;
-using Web.ViewModels;  // <- Importa el ViewModel
 
-namespace Web.Controllers
+namespace WebApp.Controllers
 {
-    [Authorize]
     public class CategoriaController : Controller
     {
         private readonly ICategoriaService _categoriaService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CategoriaController(ICategoriaService categoriaService)
+        public CategoriaController(ICategoriaService categoriaService, UserManager<ApplicationUser> userManager)
         {
             _categoriaService = categoriaService;
-        }
-
-        private string ObtenerUsuarioId()
-        {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+            _userManager = userManager;
         }
 
         // GET: /Categoria
         public async Task<IActionResult> Index()
         {
-            var usuarioId = ObtenerUsuarioId();
-            var categoriasConTotales = await _categoriaService.ObtenerCategoriasConTotalesAsync(usuarioId);
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null)
+                return RedirectToAction("GetLogin", "Login");
 
-            // Convertimos la tupla a ViewModel
-            var modelo = categoriasConTotales.Select(c => new CategoriaViewModel
-            {
-                Id = c.Categoria.Id,
-                Nombre = c.Categoria.Nombre,
-                Descripcion = c.Categoria.Descripcion,
-                PorcentajeMaximoMensual = c.Categoria.PorcentajeMaximoMensual,
-                GastoActual = c.GastoActual,
-                GastoMaximo = c.GastoMaximo
-            }).ToList();
+            var categorias = await _categoriaService.ObtenerCategoriasVisiblesPorUsuarioAsync(usuarioId);
+            return View("CategoriasIndex", categorias);
 
-            return View(modelo);
+        }
+
+        // GET: /Categoria/Details/{id}
+        public async Task<IActionResult> Details(Guid id)
+        {
+            var categoria = await _categoriaService.ObtenerCategoriaPorIdAsync(id);
+            if (categoria == null || !categoria.Visible)
+                return NotFound();
+
+            return View(categoria);
         }
 
         // GET: /Categoria/Create
@@ -54,68 +50,82 @@ namespace Web.Controllers
         // POST: /Categoria/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(string nombre, string? descripcion, double porcentaje)
+        public async Task<IActionResult> Create(string nombre, string? descripcion, double porcentajeMaximoMensual)
         {
-            if (string.IsNullOrWhiteSpace(nombre) || porcentaje < 0 || porcentaje > 100)
+            if (string.IsNullOrWhiteSpace(nombre))
+                ModelState.AddModelError("Nombre", "El nombre es obligatorio.");
+
+            if (porcentajeMaximoMensual < 0 || porcentajeMaximoMensual > 100)
+                ModelState.AddModelError("PorcentajeMaximoMensual", "El porcentaje debe estar entre 0 y 100.");
+
+            if (!ModelState.IsValid)
+                return View();
+
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null)
+                return RedirectToAction("GetLogin", "Login");
+
+            var resultado = await _categoriaService.AgregarCategoriaAsync(nombre, descripcion, porcentajeMaximoMensual, usuarioId);
+
+            if (resultado == null)
             {
-                ModelState.AddModelError("", "Datos inválidos. El porcentaje debe estar entre 0 y 100.");
+                ModelState.AddModelError("", "No se pudo agregar la categoría. Verifica que el porcentaje total no exceda el 100%.");
                 return View();
             }
 
-            var categoria = new Categoria(nombre, descripcion, porcentaje, ObtenerUsuarioId());
-            await _categoriaService.AgregarCategoriaAsync(categoria);
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: /Categoria/Edit/{id}
-        public async Task<IActionResult> Edit(Guid id)
+        // GET: /Categoria/EditPorcentaje/{id}
+        public async Task<IActionResult> EditPorcentaje(Guid id)
         {
             var categoria = await _categoriaService.ObtenerCategoriaPorIdAsync(id);
-            if (categoria == null || categoria.UsuarioId != ObtenerUsuarioId())
-            {
+            if (categoria == null || !categoria.Visible)
                 return NotFound();
-            }
 
-            ViewBag.PorcentajeActual = categoria.PorcentajeMaximoMensual;
-            ViewBag.CategoriaId = categoria.Id;
-            ViewBag.Nombre = categoria.Nombre;
-            return View();
+            return View(categoria);
         }
 
-        // POST: /Categoria/Edit/{id}
+        // POST: /Categoria/EditPorcentaje/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, double nuevoPorcentaje)
+        public async Task<IActionResult> EditPorcentaje(Guid id, double nuevoPorcentaje)
         {
             if (nuevoPorcentaje < 0 || nuevoPorcentaje > 100)
             {
-                ModelState.AddModelError("", "El porcentaje debe estar entre 0 y 100.");
-                return View();
+                ModelState.AddModelError("nuevoPorcentaje", "El porcentaje debe estar entre 0 y 100.");
+                return View(await _categoriaService.ObtenerCategoriaPorIdAsync(id));
             }
 
-            var categoria = await _categoriaService.ObtenerCategoriaPorIdAsync(id);
-            if (categoria == null || categoria.UsuarioId != ObtenerUsuarioId())
-            {
-                return NotFound();
-            }
+            await _categoriaService.AsignarPorcentajeAsync(id, nuevoPorcentaje);
 
-            await _categoriaService.AsignarPorcentajeACategoriaAsync(id, nuevoPorcentaje);
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Categoria/Delete/{id}
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(Guid id)
+        // GET: /Categoria/Eliminar/{id}
+        public async Task<IActionResult> Eliminar(Guid id)
         {
             var categoria = await _categoriaService.ObtenerCategoriaPorIdAsync(id);
-            if (categoria == null || categoria.UsuarioId != ObtenerUsuarioId())
-            {
+            if (categoria == null || !categoria.Visible)
                 return NotFound();
-            }
 
-            await _categoriaService.EliminarLogicamenteCategoriaAsync(id);
+            return View(categoria);
+        }
+
+        // POST: /Categoria/Eliminar/{id}
+        [HttpPost, ActionName("Eliminar")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EliminarConfirmado(Guid id)
+        {
+            await _categoriaService.EliminarCategoriaLogicamenteAsync(id);
             return RedirectToAction(nameof(Index));
+        }
+
+        // Ahora método asíncrono para obtener el Id real del usuario
+        private async Task<string?> ObtenerUsuarioIdAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            return user?.Id;
         }
     }
 }

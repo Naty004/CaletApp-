@@ -1,0 +1,16 @@
+@model decimal
+
+@{
+    ViewData["Title"] = "Total de Ingresos";
+    var tipo = ViewBag.Tipo as string ?? "Total";
+}
+
+<h2 class="mb-4">Total de Ingresos - @tipo</h2>
+
+<div class="alert alert-info fs-4">
+    @Model.ToString("C")
+</div>
+
+<div>
+    <a asp-action="Index" class="btn btn-secondary">Volver a la lista</a>
+</div>

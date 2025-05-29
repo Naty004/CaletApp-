@@ -1,53 +1,43 @@
 @model IEnumerable<Domain.Gasto>
 
 @{
-    ViewData["Title"] = "Gastos";
+    ViewData["Title"] = "Gastos Registrados";
 }
 
-<div class="container mt-4">
-    <h1>Gastos</h1>
+<h2 class="mb-4">Gastos Registrados</h2>
 
-    <div class="mb-3">
-        <a asp-action="Create" class="btn btn-success">Agregar Nuevo Gasto</a>
-    </div>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No se han registrado gastos aún.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Descripción</th>
+                <th>Monto</th>
+                <th>Fecha</th>
+                <th>Categoría</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var gasto in Model)
+            {
+                <tr>
+                    <td>@gasto.Descripcion</td>
+                    <td>@gasto.Monto.ToString("C")</td>
+                    <td>@gasto.Fecha.ToShortDateString()</td>
+                    <td>@gasto.Categoria?.Nombre</td>
+                    <td>
+                        <a asp-action="Eliminar" asp-route-id="@gasto.Id" class="btn btn-danger btn-sm">Eliminar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info">No tienes gastos registrados.</div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Descripción</th>
-                        <th>Monto</th>
-                        <th>Fecha</th>
-                        <th>Categoría</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var gasto in Model)
-                    {
-                        <tr>
-                            <td>@gasto.Descripcion</td>
-                            <td>@gasto.Monto.ToString("C")</td>
-                            <td>@gasto.Fecha.ToString("dd/MM/yyyy")</td>
-                            <td>@gasto.Categoria?.Nombre ?? "Sin categoría"</td>
-                            <td>
-                                <a asp-action="Edit" asp-route-id="@gasto.Id" class="btn btn-sm btn-primary me-1">Editar</a>
+<a asp-action="Create" class="btn btn-primary">Agregar Gasto</a>
 
-                                <form asp-action="Delete" asp-route-id="@gasto.Id" method="post" class="d-inline" 
-                                      onsubmit="return confirm('¿Estás seguro de eliminar este gasto?');">
-                                    <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
-                                </form>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-</div>

@@ -1,0 +1,34 @@
+@model Web.Models.IngresoCreateViewModel
+
+@{
+    ViewData["Title"] = "Agregar Ingreso";
+}
+
+<h2 class="mb-4">Agregar Ingreso</h2>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post" class="needs-validation" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Monto" class="form-label">Monto</label>
+                <input asp-for="Monto" type="number" step="0.01" class="form-control" min="0.01" required />
+                <span asp-validation-for="Monto" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Fecha" class="form-label">Fecha</label>
+                <input asp-for="Fecha" type="date" class="form-control" required />
+                <span asp-validation-for="Fecha" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

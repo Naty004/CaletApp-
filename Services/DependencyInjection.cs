@@ -1,7 +1,7 @@
 ﻿
 
-using Application.Services.IServices;
-using Application.Services.Services;
+using Application.Services;
+using Application.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Services.IServices;
@@ -21,7 +21,7 @@ namespace Application
         {
             //adicione aqui los servicios que va a usar en la aplicacion
             services.AddTransient<IService, Service>();
-            services.AddTransient<IEntradaService, EntradaService>();
+            services.AddTransient<IIngresoService, IngresoService>();
             services.AddTransient<ICategoriaService, CategoriaService>();
             services.AddTransient<IGastoService, GastoService>();
 

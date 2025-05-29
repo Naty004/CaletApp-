@@ -3,38 +3,22 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Application.Services.IServices
+namespace Application.Services
 {
     public interface ICategoriaService
     {
-        /// <summary>
-        /// Agrega una nueva categoría para un usuario.
-        /// </summary>
-        Task<Categoria> AgregarCategoriaAsync(Categoria categoria);
+        Task<Categoria> AgregarCategoriaAsync(string nombre, string? descripcion, double porcentajeMaximo, string usuarioId);
+
+        Task<IEnumerable<Categoria>> ObtenerCategoriasVisiblesPorUsuarioAsync(string usuarioId);
+
+        Task EliminarCategoriaLogicamenteAsync(Guid categoriaId);
 
         /// <summary>
-        /// Obtiene todas las categorías visibles para un usuario, con sus gastos totales actuales y máximos.
+        /// Reasigna el porcentaje máximo para una categoría y ajusta o valida que la suma total no exceda 100%
         /// </summary>
-        Task<IEnumerable<(Categoria Categoria, decimal GastoActual, decimal GastoMaximo)>> ObtenerCategoriasConTotalesAsync(string usuarioId, DateTime? fechaReferencia = null);
+        /// <exception cref="PorcentajeExcedidoException"></exception>
+        Task AsignarPorcentajeAsync(Guid categoriaId, double nuevoPorcentaje);
 
-        /// <summary>
-        /// Obtiene una categoría por su Id.
-        /// </summary>
         Task<Categoria?> ObtenerCategoriaPorIdAsync(Guid categoriaId);
-
-        /// <summary>
-        /// Asigna un nuevo porcentaje de gasto máximo mensual a una categoría.
-        /// </summary>
-        Task AsignarPorcentajeACategoriaAsync(Guid categoriaId, double nuevoPorcentaje);
-
-        /// <summary>
-        /// Realiza la eliminación lógica (oculta la categoría sin eliminarla de la base de datos).
-        /// </summary>
-        Task EliminarLogicamenteCategoriaAsync(Guid categoriaId);
-
-        /// <summary>
-        /// Obtiene el gasto total acumulado de una categoría.
-        /// </summary>
-        Task<decimal> ObtenerGastoTotalPorCategoriaAsync(Guid categoriaId);
     }
 }
