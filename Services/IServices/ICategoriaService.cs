@@ -17,7 +17,7 @@ namespace Application.Services
         /// Reasigna el porcentaje máximo para una categoría y ajusta o valida que la suma total no exceda 100%
         /// </summary>
         /// <exception cref="PorcentajeExcedidoException"></exception>
-        Task AsignarPorcentajeAsync(Guid categoriaId, double nuevoPorcentaje);
+         Task AsignarPorcentajeAsync(Guid categoriaId, double nuevoPorcentaje, string usuarioId);
 
         Task<Categoria?> ObtenerCategoriaPorIdAsync(Guid categoriaId);
     }

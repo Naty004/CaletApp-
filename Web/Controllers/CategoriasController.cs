@@ -97,20 +97,40 @@ public async Task<IActionResult> Create(string nombre, string? descripcion, doub
         }
 
         // POST: /Categoria/EditPorcentaje/{id}
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPorcentaje(Guid id, double nuevoPorcentaje)
-        {
-            if (nuevoPorcentaje < 0 || nuevoPorcentaje > 100)
-            {
-                ModelState.AddModelError("nuevoPorcentaje", "El porcentaje debe estar entre 0 y 100.");
-                return View(await _categoriaService.ObtenerCategoriaPorIdAsync(id));
-            }
+     [HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> EditPorcentaje(Guid id, double nuevoPorcentaje)
+{
+    if (nuevoPorcentaje < 0 || nuevoPorcentaje > 100)
+    {
+        ModelState.AddModelError("nuevoPorcentaje", "El porcentaje debe estar entre 0 y 100.");
+        var cat = await _categoriaService.ObtenerCategoriaPorIdAsync(id);
+        return View(cat);
+    }
 
-            await _categoriaService.AsignarPorcentajeAsync(id, nuevoPorcentaje);
+    var usuarioId = await ObtenerUsuarioIdAsync();
+    if (usuarioId == null)
+        return RedirectToAction("GetLogin", "Login");
 
-            return RedirectToAction(nameof(Index));
-        }
+    try
+    {
+        await _categoriaService.AsignarPorcentajeAsync(id, nuevoPorcentaje, usuarioId);
+        return RedirectToAction(nameof(Index));
+    }
+    catch (InvalidOperationException ex)
+    {
+        // Mensaje de negocio: suma total > 100%
+        ModelState.AddModelError("", ex.Message);
+    }
+    catch (Exception)
+    {
+        // Error inesperado
+        ModelState.AddModelError("", "Ocurrió un error inesperado al actualizar el porcentaje.");
+    }
+
+    var categoriaExistente = await _categoriaService.ObtenerCategoriaPorIdAsync(id);
+    return View(categoriaExistente);
+}
 
         // GET: /Categoria/Eliminar/{id}
         public async Task<IActionResult> Eliminar(Guid id)

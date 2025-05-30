@@ -56,24 +56,25 @@ namespace Application.Services
             await _categoriaRepository.EliminarLogicamenteCategoriaAsync(categoriaId);
         }
 
-        public async Task AsignarPorcentajeAsync(Guid categoriaId, double nuevoPorcentaje)
-        {
-            if (nuevoPorcentaje < 0 || nuevoPorcentaje > 100)
-                return;
+     public async Task AsignarPorcentajeAsync(Guid categoriaId, double nuevoPorcentaje, string usuarioId)
+{
+    if (nuevoPorcentaje < 0 || nuevoPorcentaje > 100)
+        throw new ArgumentOutOfRangeException("El porcentaje debe estar entre 0 y 100.");
 
-            var categoria = await _categoriaRepository.ObtenerCategoriaPorIdAsync(categoriaId);
-            if (categoria == null || !categoria.Visible)
-                return;
+    var categoria = await _categoriaRepository.ObtenerCategoriaPorIdAsync(categoriaId);
+    if (categoria == null || !categoria.Visible || categoria.UsuarioId != usuarioId)
+        throw new InvalidOperationException("Categoría no válida o acceso denegado.");
 
-            var categoriasVisibles = await _categoriaRepository.ObtenerCategoriasPorUsuarioAsync(categoria.UsuarioId, soloVisibles: true);
+    var categoriasVisibles = await _categoriaRepository.ObtenerCategoriasPorUsuarioAsync(usuarioId, soloVisibles: true);
+    var sumaSinEsta = categoriasVisibles
+                        .Where(c => c.Id != categoriaId)
+                        .Sum(c => c.PorcentajeMaximoMensual);
 
-            var sumaSinEsta = categoriasVisibles.Where(c => c.Id != categoriaId).Sum(c => c.PorcentajeMaximoMensual);
+    if (sumaSinEsta + nuevoPorcentaje > 100)
+        throw new InvalidOperationException("La suma total de los porcentajes no puede superar el 100%.");
 
-            if (sumaSinEsta + nuevoPorcentaje > 100)
-                return;
-
-            await _categoriaRepository.AsignarPorcentajeACategoriaAsync(categoriaId, nuevoPorcentaje);
-        }
+    await _categoriaRepository.AsignarPorcentajeACategoriaAsync(categoriaId, nuevoPorcentaje);
+}
 
         public async Task<Categoria?> ObtenerCategoriaPorIdAsync(Guid categoriaId)
         {
