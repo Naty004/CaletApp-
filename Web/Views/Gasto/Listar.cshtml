@@ -4,22 +4,22 @@
     ViewData["Title"] = "Lista de Gastos";
 }
 
-<h2>Lista de Gastos</h2>
+<h2 class="mb-4">Lista de Gastos</h2>
 
 @if (Model == null || !Model.Any())
 {
-    <p>No hay gastos registrados.</p>
+    <div class="alert alert-info">No hay gastos registrados.</div>
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
             <tr>
                 <th>Categoría</th>
                 <th>Descripción</th>
                 <th>Monto</th>
                 <th>Fecha</th>
-                <th></th>  @* Columna para acciones *@
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -31,9 +31,9 @@ else
                     <td>@gasto.Monto.ToString("C")</td>
                     <td>@gasto.Fecha.ToString("dd/MM/yyyy")</td>
                     <td>
-                        <a asp-action="Eliminar" asp-route-id="@gasto.GastoId" class="btn btn-danger btn-sm"
+                        <a asp-action="Eliminar" asp-route-id="@gasto.GastoId" class="btn btn-sm btn-outline-danger"
                            onclick="return confirm('¿Estás seguro que deseas eliminar este gasto? Esta acción no se puede deshacer.');">
-                            Eliminar
+                            <i class="bi bi-trash"></i> Eliminar
                         </a>
                     </td>
                 </tr>
@@ -42,7 +42,7 @@ else
     </table>
 }
 
-<div class="mt-3">
+<div class="mt-4">
     <a asp-action="Index" class="btn btn-secondary">Volver al resumen</a>
     <a asp-action="Create" class="btn btn-primary ms-2">Agregar nuevo gasto</a>
 </div>

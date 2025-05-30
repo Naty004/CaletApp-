@@ -45,6 +45,8 @@ namespace WebApp.Controllers
                 NombreCategoria = r.Categoria.Nombre,
                 GastoActual = r.GastoActual,
                 GastoMaximo = r.GastoMaximo,
+                 ColorSemaforo = ObtenerColorSemaforo(r.GastoActual, r.GastoMaximo)
+
                
             }).ToList();
 

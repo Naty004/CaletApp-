@@ -4,42 +4,56 @@
     ViewData["Title"] = "Resumen de Gastos";
 }
 
-<h2>Resumen de Gastos por Categoría</h2>
+<h2 class="mb-4">Resumen de Gastos por Categoría</h2>
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Categoría</th>
-            <th>Gasto Actual</th>
-            <th>Máximo Permitido</th>
-            <th>Porcentaje Usado</th>
-            <th>Indicador</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            var color = item.ColorSemaforo;
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No hay datos de gastos registrados aún.</div>
+}
+else
+{
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
             <tr>
-                <td>@item.NombreCategoria</td>
-                <td>@item.GastoActual.ToString("C")</td>
-                <td>@item.GastoMaximo.ToString("C")</td>
-                <td>@item.PorcentajeUsado %</td>
-                <td>
-                    <div class="progress">
-                        <div class="progress-bar" role="progressbar"
-                             style="width:@item.PorcentajeUsado%; background-color:@color"
-                             aria-valuenow="@item.PorcentajeUsado" aria-valuemin="0" aria-valuemax="100">
-                            @item.PorcentajeUsado %
-                        </div>
-                    </div>
-                </td>
+                <th>Categoría</th>
+                <th>Gasto Actual</th>
+                <th>Máximo Permitido</th>
+                <th>Porcentaje Usado</th>
+                <th>Indicador</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                var porcentaje = Math.Min(item.PorcentajeUsado, 100); // Evita barras que sobrepasen
+                var barraColor = item.ColorSemaforo switch
+                {
+                    "green" => "bg-success",
+                    "yellow" => "bg-warning",
+                    "red" => "bg-danger",
+                    _ => "bg-secondary"
+                };
+                <tr>
+                    <td>@item.NombreCategoria</td>
+                    <td>@item.GastoActual.ToString("C")</td>
+                    <td>@item.GastoMaximo.ToString("C")</td>
+                    <td>@item.PorcentajeUsado %</td>
+                    <td>
+                        <div class="progress" style="height: 24px;">
+                            <div class="progress-bar @barraColor text-dark fw-bold" role="progressbar"
+                                 style="width:@porcentaje%"
+                                 aria-valuenow="@porcentaje" aria-valuemin="0" aria-valuemax="100">
+                                @porcentaje%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
-<div>
+<div class="mt-4">
     <a asp-action="Create" class="btn btn-primary">Registrar nuevo gasto</a>
     <a asp-action="Listar" class="btn btn-secondary ms-2">Ver lista de gastos</a>
 </div>

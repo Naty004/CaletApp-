@@ -6,26 +6,29 @@
 
 <h2>Registrar Nuevo Gasto</h2>
 
+@* Mostrar un resumen general de errores de validación *@
+<div asp-validation-summary="All" class="text-danger mb-3"></div>
+
 <form asp-action="Create" method="post">
-    <div class="form-group">
+    <div class="form-group mb-3">
         <label asp-for="Descripcion"></label>
         <input asp-for="Descripcion" class="form-control" />
         <span asp-validation-for="Descripcion" class="text-danger"></span>
     </div>
 
-    <div class="form-group">
+    <div class="form-group mb-3">
         <label asp-for="Monto"></label>
         <input asp-for="Monto" class="form-control" />
         <span asp-validation-for="Monto" class="text-danger"></span>
     </div>
 
-    <div class="form-group">
+    <div class="form-group mb-3">
         <label asp-for="Fecha"></label>
         <input asp-for="Fecha" class="form-control" type="date" />
         <span asp-validation-for="Fecha" class="text-danger"></span>
     </div>
 
-    <div class="form-group">
+    <div class="form-group mb-3">
         <label asp-for="CategoriaId">Categoría</label>
         <select asp-for="CategoriaId" asp-items="@(new SelectList(Model.Categorias, "Id", "Nombre"))" class="form-control">
             <option value="">-- Selecciona una categoría --</option>
@@ -34,7 +37,7 @@
     </div>
 
     <button type="submit" class="btn btn-success">Guardar</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
 </form>
 
 @section Scripts {

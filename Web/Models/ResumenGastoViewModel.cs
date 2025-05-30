@@ -9,7 +9,9 @@ namespace Web.Models
         public decimal GastoActual { get; set; }
         public decimal GastoMaximo { get; set; }
 
-        public Guid GastoId { get; set; } // Opcional, si lo necesitas para enlaces
+        public Guid GastoId { get; set; } //
+        public string ColorSemaforo { get; set; } // green, yellow, red
+
 
         /// <summary>
         /// Calculado automáticamente para mostrar en la vista.
@@ -21,14 +23,6 @@ namespace Web.Models
         /// Devuelve un color semáforo según el porcentaje usado.
         /// Verde: <70%, Amarillo: 70-90%, Rojo: >90%
         /// </summary>
-        public string ColorSemaforo
-        {
-            get
-            {
-                if (PorcentajeUsado >= 90) return "red";
-                if (PorcentajeUsado >= 70) return "orange";
-                return "green";
-            }
-        }
+       
     }
 }
