@@ -47,34 +47,44 @@ namespace WebApp.Controllers
             return View();
         }
 
-        // POST: /Categoria/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(string nombre, string? descripcion, double porcentajeMaximoMensual)
-        {
-            if (string.IsNullOrWhiteSpace(nombre))
-                ModelState.AddModelError("Nombre", "El nombre es obligatorio.");
+         // POST: /Categoria/Create
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Create(string nombre, string? descripcion, double porcentajeMaximoMensual)
+{
+    if (string.IsNullOrWhiteSpace(nombre))
+        ModelState.AddModelError("Nombre", "El nombre es obligatorio.");
 
-            if (porcentajeMaximoMensual < 0 || porcentajeMaximoMensual > 100)
-                ModelState.AddModelError("PorcentajeMaximoMensual", "El porcentaje debe estar entre 0 y 100.");
+    if (porcentajeMaximoMensual < 0 || porcentajeMaximoMensual > 100)
+        ModelState.AddModelError("PorcentajeMaximoMensual", "El porcentaje debe estar entre 0 y 100.");
 
-            if (!ModelState.IsValid)
-                return View();
+    if (!ModelState.IsValid)
+        return View();
 
-            var usuarioId = await ObtenerUsuarioIdAsync();
-            if (usuarioId == null)
-                return RedirectToAction("GetLogin", "Login");
+    var usuarioId = await ObtenerUsuarioIdAsync();
+    if (usuarioId == null)
+        return RedirectToAction("GetLogin", "Login");
 
-            var resultado = await _categoriaService.AgregarCategoriaAsync(nombre, descripcion, porcentajeMaximoMensual, usuarioId);
+    try
+    {
+        var resultado = await _categoriaService.AgregarCategoriaAsync(nombre, descripcion, porcentajeMaximoMensual, usuarioId);
+        return RedirectToAction(nameof(Index));
+    }
+    catch (InvalidOperationException ex)
+    {
+        // Error de negocio: nombre duplicado o porcentaje total excedido
+        ModelState.AddModelError("", ex.Message);
+    }
+    catch (Exception)
+    {
+        // Error genérico inesperado
+        ModelState.AddModelError("", "Ocurrió un error inesperado. Intenta de nuevo.");
+    }
 
-            if (resultado == null)
-            {
-                ModelState.AddModelError("", "No se pudo agregar la categoría. Verifica que el porcentaje total no exceda el 100%.");
-                return View();
-            }
+    // Si algo falla, vuelve a mostrar la vista con los errores
+    return View();
+}
 
-            return RedirectToAction(nameof(Index));
-        }
 
         // GET: /Categoria/EditPorcentaje/{id}
         public async Task<IActionResult> EditPorcentaje(Guid id)

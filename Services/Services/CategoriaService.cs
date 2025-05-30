@@ -28,8 +28,14 @@ namespace Application.Services
 
             var porcentajeTotalExistente = categoriasVisibles.Sum(c => c.PorcentajeMaximoMensual);
 
+
+                  // Validar nombre Ãºnico
+            if (categoriasVisibles.Any(c => c.Nombre.Equals(nombre, StringComparison.OrdinalIgnoreCase)))
+              throw new InvalidOperationException("Ya existe una categorÃ­a con ese nombre.");
+
             if (porcentajeTotalExistente + porcentajeMaximo > 100)
-                return null;
+                 throw new InvalidOperationException("El porcentaje total de las categorÃ­as no puede superar el 100%.");
+
 
             var nuevaCategoria = new Categoria(nombre, descripcion, porcentajeMaximo, usuarioId);
 
@@ -45,7 +51,7 @@ namespace Application.Services
         {
             var categoria = await _categoriaRepository.ObtenerCategoriaPorIdAsync(categoriaId);
             if (categoria == null || categoria.UsuarioId != usuarioId || !categoria.Visible)
-                throw new UnauthorizedAccessException("Acceso denegado o categoría no válida.");
+                throw new UnauthorizedAccessException("Acceso denegado o categorï¿½a no vï¿½lida.");
 
             await _categoriaRepository.EliminarLogicamenteCategoriaAsync(categoriaId);
         }
