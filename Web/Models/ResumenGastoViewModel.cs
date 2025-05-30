@@ -9,8 +9,11 @@ namespace Web.Models
         public decimal GastoActual { get; set; }
         public decimal GastoMaximo { get; set; }
 
+        public Guid GastoId { get; set; } // Opcional, si lo necesitas para enlaces
+
         /// <summary>
         /// Calculado automáticamente para mostrar en la vista.
+        /// Porcentaje redondeado a 2 decimales.
         /// </summary>
         public decimal PorcentajeUsado => GastoMaximo == 0 ? 0 : Math.Round((GastoActual / GastoMaximo) * 100, 2);
 

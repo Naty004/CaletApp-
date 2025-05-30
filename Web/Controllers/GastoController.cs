@@ -15,18 +15,18 @@ namespace WebApp.Controllers
     {
         private readonly IGastoService _gastoService;
         private readonly IIngresoService _ingresoService;
-        private readonly ICategoriaService _categoriaService;  // <-- Inyectar
+        private readonly ICategoriaService _categoriaService;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public GastoController(
             IGastoService gastoService,
             IIngresoService ingresoService,
-            ICategoriaService categoriaService,  // <-- Inyectar
+            ICategoriaService categoriaService,
             UserManager<ApplicationUser> userManager)
         {
             _gastoService = gastoService;
             _ingresoService = ingresoService;
-            _categoriaService = categoriaService;  // <-- Asignar
+            _categoriaService = categoriaService;
             _userManager = userManager;
         }
 
@@ -45,6 +45,27 @@ namespace WebApp.Controllers
                 NombreCategoria = r.Categoria.Nombre,
                 GastoActual = r.GastoActual,
                 GastoMaximo = r.GastoMaximo,
+               
+            }).ToList();
+
+            return View(modelo);
+        }
+
+        // GET: /Gasto/Listar
+        public async Task<IActionResult> Listar()
+        {
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Unauthorized();
+
+            var gastos = await _gastoService.ObtenerGastosPorUsuarioAsync(usuarioId);
+
+            var modelo = gastos.Select(g => new GastoViewModel
+            {
+                GastoId = g.Id,
+                NombreCategoria = g.Categoria?.Nombre ?? "Sin Categoría",
+                Descripcion = g.Descripcion,
+                Monto = g.Monto,
+                Fecha = g.Fecha
             }).ToList();
 
             return View(modelo);
@@ -95,7 +116,7 @@ namespace WebApp.Controllers
                     usuarioId
                 );
 
-                // Recalcular topes luego de agregar gasto
+                // Recalcular topes tras adicionar gasto
                 await _ingresoService.RecalcularTopesGastoAsync(usuarioId, model.Fecha.Month, model.Fecha.Year);
 
                 return RedirectToAction(nameof(Index));
@@ -119,7 +140,16 @@ namespace WebApp.Controllers
 
             if (gasto == null) return NotFound();
 
-            return View(gasto);
+            var vm = new GastoViewModel
+            {
+                GastoId = gasto.Id,
+                NombreCategoria = gasto.Categoria?.Nombre ?? "Sin Categoría",
+                Descripcion = gasto.Descripcion,
+                Monto = gasto.Monto,
+                Fecha = gasto.Fecha
+            };
+
+            return View(vm);
         }
 
         // POST: /Gasto/Eliminar/{id}
@@ -138,7 +168,6 @@ namespace WebApp.Controllers
 
                 await _gastoService.EliminarGastoYReajustarAsync(id);
 
-                // Recalcular topes luego de eliminar gasto
                 await _ingresoService.RecalcularTopesGastoAsync(usuarioId, gasto.Fecha.Month, gasto.Fecha.Year);
 
                 return RedirectToAction(nameof(Index));
@@ -146,53 +175,11 @@ namespace WebApp.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError("", ex.Message);
-                return View();
+                return RedirectToAction(nameof(Listar));
             }
         }
 
-        // GET: /Gasto/Total
-        public async Task<IActionResult> Total()
-        {
-            var usuarioId = await ObtenerUsuarioIdAsync();
-            if (usuarioId == null) return Unauthorized();
-
-            var total = await _gastoService.ObtenerGastoTotalPorUsuarioAsync(usuarioId);
-            ViewBag.Tipo = "Total";
-            return View("TotalView", total);
-        }
-
-        // GET: /Gasto/Mensual?mes=5&anio=2025
-        public async Task<IActionResult> Mensual(int mes, int anio)
-        {
-            var usuarioId = await ObtenerUsuarioIdAsync();
-            if (usuarioId == null) return Unauthorized();
-
-            var total = await _gastoService.ObtenerGastoTotalMensualAsync(usuarioId, mes, anio);
-            ViewBag.Tipo = $"Mensual ({mes}/{anio})";
-            return View("TotalView", total);
-        }
-
-        // GET: /Gasto/Semanal?fecha=2025-05-27
-        public async Task<IActionResult> Semanal(DateTime fecha)
-        {
-            var usuarioId = await ObtenerUsuarioIdAsync();
-            if (usuarioId == null) return Unauthorized();
-
-            var total = await _gastoService.ObtenerGastoTotalSemanalAsync(usuarioId, fecha);
-            ViewBag.Tipo = $"Semanal ({fecha:dd/MM/yyyy})";
-            return View("TotalView", total);
-        }
-
-        // GET: /Gasto/Diario?fecha=2025-05-27
-        public async Task<IActionResult> Diario(DateTime fecha)
-        {
-            var usuarioId = await ObtenerUsuarioIdAsync();
-            if (usuarioId == null) return Unauthorized();
-
-            var total = await _gastoService.ObtenerGastoTotalDiarioAsync(usuarioId, fecha);
-            ViewBag.Tipo = $"Diario ({fecha:dd/MM/yyyy})";
-            return View("TotalView", total);
-        }
+        // Métodos auxiliares
 
         private async Task<string?> ObtenerUsuarioIdAsync()
         {
@@ -212,8 +199,18 @@ namespace WebApp.Controllers
             {
                 Id = c.Id,
                 Nombre = c.Nombre
-            }).ToList(); 
+            }).ToList();
         }
 
+        private string ObtenerColorSemaforo(decimal gastoActual, decimal gastoMaximo)
+        {
+            if (gastoMaximo == 0) return "gray";
+
+            var porcentaje = (gastoActual / gastoMaximo) * 100;
+
+            if (porcentaje < 70) return "green";
+            if (porcentaje < 90) return "yellow";
+            return "red";
+        }
     }
 }

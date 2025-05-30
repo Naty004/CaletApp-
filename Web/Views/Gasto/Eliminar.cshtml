@@ -1,35 +1,39 @@
-@model Domain.Gasto
+@model Web.Models.GastoViewModel
 
 @{
     ViewData["Title"] = "Eliminar Gasto";
 }
 
-<h2>¿Estás seguro de que deseas eliminar este gasto?</h2>
+<h2>Eliminar Gasto</h2>
 
 <div class="alert alert-warning">
-    Esta acción no se puede deshacer.
+    <strong>¿Estás seguro que quieres eliminar este gasto?</strong>
+    <p>Esta acción es <strong>irrevocable</strong> y no podrá deshacerse.</p>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">Descripción</dt>
-            <dd class="col-sm-9">@Model.Descripcion</dd>
+<table class="table table-bordered">
+    <tr>
+        <th>Categoría</th>
+        <td>@Model.NombreCategoria</td>
+    </tr>
+    <tr>
+        <th>Descripción</th>
+        <td>@Model.Descripcion</td>
+    </tr>
+    <tr>
+        <th>Monto</th>
+        <td>@Model.Monto.ToString("C")</td>
+    </tr>
+    <tr>
+        <th>Fecha</th>
+        <td>@Model.Fecha.ToString("dd/MM/yyyy")</td>
+    </tr>
+</table>
 
-            <dt class="col-sm-3">Monto</dt>
-            <dd class="col-sm-9">@Model.Monto.ToString("C")</dd>
-
-            <dt class="col-sm-3">Fecha</dt>
-            <dd class="col-sm-9">@Model.Fecha.ToString("dd/MM/yyyy")</dd>
-
-            <dt class="col-sm-3">Categoría</dt>
-            <dd class="col-sm-9">@Model.Categoria?.Nombre</dd>
-        </dl>
-
-        <form asp-action="EliminarConfirmado" method="post">
-            <input type="hidden" asp-for="Id" />
-            <button type="submit" class="btn btn-danger">Eliminar</button>
-            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-        </form>
-    </div>
-</div>
+<form asp-action="Eliminar" method="post">
+    <input type="hidden" asp-for="GastoId" />
+    <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Eliminar
+    </button>
+    <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+</form>
