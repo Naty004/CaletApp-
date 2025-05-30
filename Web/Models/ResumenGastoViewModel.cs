@@ -13,16 +13,12 @@ namespace Web.Models
         public string ColorSemaforo { get; set; } // green, yellow, red
 
 
-        /// <summary>
         /// Calculado automáticamente para mostrar en la vista.
         /// Porcentaje redondeado a 2 decimales.
-        /// </summary>
         public decimal PorcentajeUsado => GastoMaximo == 0 ? 0 : Math.Round((GastoActual / GastoMaximo) * 100, 2);
 
-        /// <summary>
         /// Devuelve un color semáforo según el porcentaje usado.
         /// Verde: <70%, Amarillo: 70-90%, Rojo: >90%
-        /// </summary>
        
     }
 }

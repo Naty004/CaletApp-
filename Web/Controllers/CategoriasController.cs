@@ -1,6 +1,6 @@
 ﻿using Application.Services;
 using Domain;
-using Infrastructure.Identity;   // Para ApplicationUser
+using Infrastructure.Identity;  
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;

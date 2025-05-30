@@ -9,7 +9,6 @@
 <div class="container mt-4">
     <h2>@ViewData["Title"]</h2>
 
-    @* Mensajes de error generales *@
     @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
     {
         <div class="alert alert-danger">

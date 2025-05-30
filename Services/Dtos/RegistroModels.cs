@@ -16,7 +16,7 @@ namespace Services.Dtos
 
     public class RegistroModel
     {
-        public Guid Id { get; set; } // Se puede usar para edición o identificación
+        public Guid Id { get; set; }
 
         [Required(ErrorMessage = "El nombre es obligatorio.")]
         [Display(Name = "Nombre")]
