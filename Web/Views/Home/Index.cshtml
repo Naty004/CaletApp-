@@ -12,9 +12,10 @@
     <div class="row mb-4">
         <div class="col-md-4">
             <div class="card text-white bg-success mb-3">
-                <div class="card-header">Ingreso Total Mensual</div>
+                <div class="card-header">Ingreso Disponible</div>
                 <div class="card-body">
-                    <h3 class="card-title">$@Model.IngresoTotal.ToString("N2")</h3>
+                    <h3 class="card-title">$@ViewBag.IngresoDisponible.ToString("N2")</h3>
+                    <p class="card-text">De un total de $@ViewBag.IngresoTotal.ToString("N2")</p>
                 </div>
             </div>
         </div>
@@ -23,7 +24,7 @@
             <div class="card text-white bg-danger mb-3">
                 <div class="card-header">Gasto Total Mensual</div>
                 <div class="card-body">
-                    <h3 class="card-title">$@Model.GastoTotal.ToString("N2")</h3>
+                    <h3 class="card-title">$@ViewBag.GastoTotal.ToString("N2")</h3>
                 </div>
             </div>
         </div>
@@ -32,9 +33,9 @@
             <div class="card text-white bg-info mb-3">
                 <div class="card-header">Porcentaje Gastado</div>
                 <div class="card-body">
-                    <h3 class="card-title">@Model.PorcentajeGastado %</h3>
+                    <h3 class="card-title">@ViewBag.PorcentajeGastado %</h3>
                     <div class="progress">
-                        <div class="progress-bar" role="progressbar" style="width: @Model.PorcentajeGastado%" aria-valuenow="@Model.PorcentajeGastado" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar" role="progressbar" style="width: @ViewBag.PorcentajeGastado%" aria-valuenow="@ViewBag.PorcentajeGastado" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div>
             </div>
@@ -63,6 +64,9 @@
             {
                 foreach (var cat in Model.Categorias)
                 {
+                    var color = cat.Porcentaje < 70 ? "bg-success" :
+                                cat.Porcentaje < 100 ? "bg-warning" : "bg-danger";
+
                     <tr>
                         <td>@cat.Nombre</td>
                         <td>$@cat.GastoActual.ToString("N2")</td>
@@ -70,7 +74,7 @@
                         <td>
                             @cat.Porcentaje % 
                             <div class="progress" style="height: 20px;">
-                                <div class="progress-bar" role="progressbar" style="width: @cat.Porcentaje%" aria-valuenow="@cat.Porcentaje" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="progress-bar @color" role="progressbar" style="width: @cat.Porcentaje%" aria-valuenow="@cat.Porcentaje" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </td>
                     </tr>

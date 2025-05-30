@@ -30,28 +30,37 @@ namespace WebApp.Controllers
             _userManager = userManager;
         }
 
-        // GET: /Gasto
-        public async Task<IActionResult> Index()
-        {
-            var usuarioId = await ObtenerUsuarioIdAsync();
-            if (usuarioId == null) return Unauthorized();
+       // GET: /Gasto
+public async Task<IActionResult> Index()
+{
+    var usuarioId = await ObtenerUsuarioIdAsync();
+    if (usuarioId == null) return Unauthorized();
 
-            var hoy = DateTime.Today;
-            var resumen = await _ingresoService.RecalcularTopesGastoAsync(usuarioId, hoy.Month, hoy.Year);
+    var hoy = DateTime.Today;
+    var resumen = await _ingresoService.RecalcularTopesGastoAsync(usuarioId, hoy.Month, hoy.Year);
 
-            var modelo = resumen.Select(r => new ResumenGastoViewModel
-            {
-                CategoriaId = r.Categoria.Id,
-                NombreCategoria = r.Categoria.Nombre,
-                GastoActual = r.GastoActual,
-                GastoMaximo = r.GastoMaximo,
-                 ColorSemaforo = ObtenerColorSemaforo(r.GastoActual, r.GastoMaximo)
+    // Calcular ingreso total y disponible
+    var ingresoTotal = await _ingresoService.ObtenerIngresoTotalMensualAsync(usuarioId, hoy.Month, hoy.Year);
+    var gastoTotal = await _gastoService.ObtenerGastoTotalMensualAsync(usuarioId, hoy.Month, hoy.Year);
+    var ingresoDisponible = ingresoTotal - gastoTotal;
 
-               
-            }).ToList();
+    // Guardar en ViewBag para la vista
+    ViewBag.IngresoTotal = ingresoTotal;
+    ViewBag.IngresoDisponible = ingresoDisponible;
 
-            return View(modelo);
-        }
+    // Construir modelo de categorías
+    var modelo = resumen.Select(r => new ResumenGastoViewModel
+    {
+        CategoriaId = r.Categoria.Id,
+        NombreCategoria = r.Categoria.Nombre,
+        GastoActual = r.GastoActual,
+        GastoMaximo = r.GastoMaximo,
+        ColorSemaforo = ObtenerColorSemaforo(r.GastoActual, r.GastoMaximo)
+    }).ToList();
+
+    return View(modelo);
+}
+
 
         // GET: /Gasto/Listar
         public async Task<IActionResult> Listar()
@@ -121,7 +130,7 @@ namespace WebApp.Controllers
                 // Recalcular topes tras adicionar gasto
                 await _ingresoService.RecalcularTopesGastoAsync(usuarioId, model.Fecha.Month, model.Fecha.Year);
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
             {
@@ -172,7 +181,8 @@ namespace WebApp.Controllers
 
                 await _ingresoService.RecalcularTopesGastoAsync(usuarioId, gasto.Fecha.Month, gasto.Fecha.Year);
 
-                return RedirectToAction(nameof(Index));
+                        return RedirectToAction("Index", "Home");
+
             }
             catch (Exception ex)
             {

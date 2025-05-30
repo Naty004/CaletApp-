@@ -25,37 +25,41 @@ namespace WebApp.Controllers
         }
 
         public async Task<IActionResult> Index()
+{
+    var usuarioId = await ObtenerUsuarioIdAsync();
+    if (usuarioId == null)
+        return RedirectToAction("GetLogin", "Login");
+
+    var hoy = DateTime.Now;
+    var mes = hoy.Month;
+    var anio = hoy.Year;
+
+    var ingresoTotal = await _ingresoService.ObtenerIngresoTotalMensualAsync(usuarioId, mes, anio);
+    var gastoTotal = await _gastoService.ObtenerGastoTotalMensualAsync(usuarioId, mes, anio);
+    var ingresoDisponible = ingresoTotal - gastoTotal;
+
+    var categoriasConGasto = await _ingresoService.RecalcularTopesGastoAsync(usuarioId, mes, anio);
+    var porcentajeTotalGastado = ingresoTotal == 0 ? 0 : Math.Round((double)(gastoTotal / ingresoTotal) * 100, 2);
+
+    ViewBag.IngresoTotal = ingresoTotal;
+    ViewBag.GastoTotal = gastoTotal;
+    ViewBag.IngresoDisponible = ingresoDisponible;
+    ViewBag.PorcentajeGastado = porcentajeTotalGastado;
+
+    var model = new
+    {
+        Categorias = categoriasConGasto.Select(c => new
         {
-            var usuarioId = await ObtenerUsuarioIdAsync();
-            if (usuarioId == null)
-                return RedirectToAction("GetLogin", "Login");
+            Nombre = c.Categoria.Nombre,
+            GastoActual = c.GastoActual,
+            Tope = c.GastoMaximo,
+            Porcentaje = c.GastoMaximo == 0 ? 0 : Math.Round((double)(c.GastoActual / c.GastoMaximo) * 100, 2)
+        }).ToList()
+    };
 
-            var hoy = DateTime.Now;
-            var mes = hoy.Month;
-            var anio = hoy.Year;
+    return View(model);
+}
 
-            var ingresoTotal = await _ingresoService.ObtenerIngresoTotalMensualAsync(usuarioId, mes, anio);
-            var gastoTotal = await _gastoService.ObtenerGastoTotalMensualAsync(usuarioId, mes, anio);
-            var categoriasConGasto = await _ingresoService.RecalcularTopesGastoAsync(usuarioId, mes, anio);
-
-            var porcentajeTotalGastado = ingresoTotal == 0 ? 0 : Math.Round((double)(gastoTotal / ingresoTotal) * 100, 2);
-
-            var model = new
-            {
-                IngresoTotal = ingresoTotal,
-                GastoTotal = gastoTotal,
-                PorcentajeGastado = porcentajeTotalGastado,
-                Categorias = categoriasConGasto.Select(c => new
-                {
-                    Nombre = c.Categoria.Nombre,
-                    GastoActual = c.GastoActual,
-                    Tope = c.GastoMaximo,
-                    Porcentaje = c.GastoMaximo == 0 ? 0 : Math.Round((double)(c.GastoActual / c.GastoMaximo) * 100, 2)
-                }).ToList()
-            };
-
-            return View(model);
-        }
 
         private async Task<string?> ObtenerUsuarioIdAsync()
         {
