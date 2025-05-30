@@ -24,5 +24,10 @@ namespace Domain
 
         // Solo el ID del usuario (sin navegar a ApplicationUser)
         public string UsuarioId { get; set; }
+
+        public Gasto() { }
+
     }
+
+    
 }

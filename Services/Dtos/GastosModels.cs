@@ -1,30 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services.Dtos
 {
     public class GastosModels
     {
-        [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
-        [Required]
-        [ForeignKey("CategoriaModels")]
-        public int CategoriaId { get; set; }
-        public CategoriaModels CategoriaModels { get; set; } = new CategoriaModels();
+        public Guid CategoriaId { get; set; }
 
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal MontoGasto { get; set; }
+        public string CategoriaNombre { get; set; } = string.Empty;
 
-        [Required]
-        public DateTime FechaGasto { get; set; }
+        public decimal Monto { get; set; }
 
-        public string DescripcionGasto { get; set; } 
+        public DateTime Fecha { get; set; }
+
+        public string Descripcion { get; set; } = string.Empty;
+
+        public string UsuarioId { get; set; } = string.Empty;
     }
 }

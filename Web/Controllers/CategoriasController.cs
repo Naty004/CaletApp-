@@ -112,14 +112,18 @@ namespace WebApp.Controllers
             return View(categoria);
         }
 
-        // POST: /Categoria/Eliminar/{id}
         [HttpPost, ActionName("Eliminar")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarConfirmado(Guid id)
         {
-            await _categoriaService.EliminarCategoriaLogicamenteAsync(id);
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null)
+                return RedirectToAction("GetLogin", "Login");
+
+            await _categoriaService.EliminarCategoriaLogicamenteAsync(id, usuarioId);
             return RedirectToAction(nameof(Index));
         }
+
 
         // Ahora método asíncrono para obtener el Id real del usuario
         private async Task<string?> ObtenerUsuarioIdAsync()

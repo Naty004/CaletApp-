@@ -10,7 +10,8 @@ namespace Services.Dtos
     public class CategoriaModels
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
+
         [Required]
         [StringLength(100)]
         public string NombreCategoria { get; set; }
@@ -18,7 +19,8 @@ namespace Services.Dtos
         [StringLength(250)]
         public string DescripcionCategoria { get; set; }
         [Required]
-        public int PorcentajeCategoria { get; set; }
+
+        public double PorcentajeCategoria { get; set; }
 
         //Relación con los gastos
         public List<GastosModels> Gastos { get; set; } = new List<GastosModels>();

@@ -11,7 +11,7 @@ namespace Application.Services
 
         Task<IEnumerable<Categoria>> ObtenerCategoriasVisiblesPorUsuarioAsync(string usuarioId);
 
-        Task EliminarCategoriaLogicamenteAsync(Guid categoriaId);
+        Task EliminarCategoriaLogicamenteAsync(Guid categoriaId, string usuarioId);
 
         /// <summary>
         /// Reasigna el porcentaje máximo para una categoría y ajusta o valida que la suma total no exceda 100%

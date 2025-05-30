@@ -19,10 +19,10 @@ namespace Application.Services
         public async Task<Categoria> AgregarCategoriaAsync(string nombre, string? descripcion, double porcentajeMaximo, string usuarioId)
         {
             if (string.IsNullOrWhiteSpace(nombre))
-                return null;
+                throw new ArgumentException("El nombre es obligatorio.");
 
             if (porcentajeMaximo < 0 || porcentajeMaximo > 100)
-                return null;
+                throw new ArgumentOutOfRangeException("El porcentaje debe estar entre 0 y 100.");
 
             var categoriasVisibles = await _categoriaRepository.ObtenerCategoriasPorUsuarioAsync(usuarioId, soloVisibles: true);
 
@@ -41,11 +41,11 @@ namespace Application.Services
             return await _categoriaRepository.ObtenerCategoriasPorUsuarioAsync(usuarioId, soloVisibles: true);
         }
 
-        public async Task EliminarCategoriaLogicamenteAsync(Guid categoriaId)
+        public async Task EliminarCategoriaLogicamenteAsync(Guid categoriaId, string usuarioId)
         {
             var categoria = await _categoriaRepository.ObtenerCategoriaPorIdAsync(categoriaId);
-            if (categoria == null || !categoria.Visible)
-                return;
+            if (categoria == null || categoria.UsuarioId != usuarioId || !categoria.Visible)
+                throw new UnauthorizedAccessException("Acceso denegado o categoría no válida.");
 
             await _categoriaRepository.EliminarLogicamenteCategoriaAsync(categoriaId);
         }
