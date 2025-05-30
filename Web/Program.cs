@@ -6,20 +6,22 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Services.Common;
+using Infrastructure.Data;
+
 
 namespace MvcTemplate;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Validar cadena de conexión
+        // Validar cadena de conexiï¿½n
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         if (string.IsNullOrEmpty(connectionString))
         {
-            throw new InvalidOperationException("La cadena de conexión 'DefaultConnection' no está configurada.");
+            throw new InvalidOperationException("La cadena de conexiï¿½n 'DefaultConnection' no estï¿½ configurada.");
         }
 
         // AutoMapper
@@ -32,13 +34,16 @@ public class Program
         builder.Services.AddServices(builder.Configuration);
 
         // Identity usando ApplicationUser y DbContext configurado
-        builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
-        {
-            options.SignIn.RequireConfirmedAccount = false; // Puedes ajustar según ambiente
-        })
-        .AddEntityFrameworkStores<ApplicationDbContext>();
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+      {
+        options.SignIn.RequireConfirmedAccount = false;
+      })
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
 
-        // Configuración de la cookie de autenticación
+       
+
+        // Configuraciï¿½n de la cookie de autenticaciï¿½n
         builder.Services.ConfigureApplicationCookie(options =>
         {
             options.LoginPath = "/Login/GetLogin";
@@ -46,10 +51,12 @@ public class Program
         });
 
         builder.Services.AddControllersWithViews();
+        builder.Services.AddRazorPages();
+
 
         var app = builder.Build();
 
-        // Configuración del pipeline HTTP
+        // Configuraciï¿½n del pipeline HTTP
         if (app.Environment.IsDevelopment())
         {
             app.UseMigrationsEndPoint();
@@ -63,21 +70,27 @@ public class Program
         app.UseHttpsRedirection();
         app.UseRouting();
 
-        app.UseAuthentication();  // Habilita autenticación
-        app.UseAuthorization();   // Habilita autorización
+        app.UseAuthentication();  // Habilita autenticacion
+        app.UseAuthorization();   // Habilita autorizacion
 
-        // MapStaticAssets y WithStaticAssets son métodos personalizados,
-        // asegúrate que están implementados o comenta estas líneas
+        // MapStaticAssets y WithStaticAssets son metodos personalizados,
+        // asegï¿½rate que estï¿½n implementados o comenta estas lineas
          app.MapStaticAssets();
 
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Login}/{action=GetLogin}/{id?}");
-        // .WithStaticAssets();  // Descomenta solo si tienes esta extensión
+        // .WithStaticAssets();  // Descomenta solo si tienes esta extension
 
         app.MapRazorPages();
-        // .WithStaticAssets();    // Descomenta solo si tienes esta extensión
+        // .WithStaticAssets();    // Descomenta solo si tienes esta extension
 
+        using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await DbSeeder.SeedAsync(services);
+}
+             
         app.Run();
     }
 }

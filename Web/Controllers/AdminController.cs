@@ -1,86 +1,73 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Infrastructure.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Services.Dtos;
-using Services.IServices;
-using System.Threading.Tasks;
 
-namespace MvcTemplate.Controllers
+namespace Web.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
-        private readonly IService _service;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AdminController(IService service)
+        public AdminController(UserManager<ApplicationUser> userManager)
         {
-            _service = service;
+            _userManager = userManager;
         }
 
-        // Vista para registrar un nuevo usuario
+        // GET: /Admin/ListUsuarios
+        public IActionResult ListUsuarios()
+        {
+            var usuarios = _userManager.Users.ToList();
+            return View(usuarios);
+        }
+
+        // POST: /Admin/DeleteUsuario/{id}
+        [HttpPost]
+        public async Task<IActionResult> DeleteUsuario(string id)
+        {
+            var usuario = await _userManager.FindByIdAsync(id);
+            if (usuario != null)
+            {
+                await _userManager.DeleteAsync(usuario);
+            }
+
+            return RedirectToAction("ListUsuarios");
+        }
+
+        // GET: /Admin/AddUsuario
         [HttpGet]
         public IActionResult AddUsuario()
         {
             return View();
         }
 
-        // Crear usuario
+        // POST: /Admin/AddUsuario
         [HttpPost]
-        public async Task<IActionResult> AddUsuario(RegistroModel registro, string password)
+        public async Task<IActionResult> AddUsuario(string email, string password)
         {
-            if (!ModelState.IsValid)
-                return View(registro);
-
-            // Validar unicidad de correo y usuario
-            if (await _service.UsuarioExiste(registro.CorreoElectronico, registro.NombreUsuario))
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                ModelState.AddModelError("", "El correo o nombre de usuario ya está en uso.");
-                return View(registro);
+                ModelState.AddModelError("", "Email y contraseña son requeridos.");
+                return View();
             }
 
-            await _service.AddUsuario(registro, password);
-            return RedirectToAction("ListUsuarios");
-        }
+            var nuevoUsuario = new ApplicationUser { UserName = email, Email = email };
+            var resultado = await _userManager.CreateAsync(nuevoUsuario, password);
 
-        // Listar usuarios
-        public async Task<IActionResult> ListUsuarios()
-        {
-            var usuarios = await _service.GetAllUsuarios();
-            return View(usuarios);
-        }
-
-        // Vista para editar usuario
-        [HttpGet]
-        public async Task<IActionResult> EditUsuario(string id)
-        {
-            var usuario = await _service.GetUsuarioById(id);
-            if (usuario == null)
-                return NotFound();
-
-            return View(usuario);
-        }
-
-        // Modificar usuario
-        [HttpPost]
-        public async Task<IActionResult> EditUsuario(RegistroModel usuario)
-        {
-            if (!ModelState.IsValid)
-                return View(usuario);
-            var existe = await _service.UsuarioExiste(usuario.CorreoElectronico, usuario.NombreUsuario, usuario.Id.ToString());
-            if (existe)
+            if (resultado.Succeeded)
             {
-                ModelState.AddModelError("", "El correo o nombre de usuario ya está en uso por otro usuario.");
-                return View(usuario);
+                await _userManager.AddToRoleAsync(nuevoUsuario, "User"); // Rol por defecto
+                return RedirectToAction("ListUsuarios");
             }
 
-            await _service.UpdateUsuario(usuario);
-            return RedirectToAction("ListUsuarios");
-        }
+            foreach (var error in resultado.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
 
-        // Eliminar usuario
-        [HttpPost]
-        public async Task<IActionResult> DeleteUsuario(string id)
-        {
-            await _service.DeleteUsuario(id);
-            return RedirectToAction("ListUsuarios");
+            return View();
         }
     }
 }
+
