@@ -1,23 +1,30 @@
 using Application.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using Infrastructure.Identity;
+
 
 namespace WebApp.Controllers
 {
     public class IngresoController : Controller
     {
         private readonly IIngresoService _ingresoService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public IngresoController(IIngresoService ingresoService)
+        public IngresoController(IIngresoService ingresoService, UserManager<ApplicationUser> userManager)
         {
             _ingresoService = ingresoService;
+            _userManager = userManager;
         }
 
         // GET: /Ingreso
         public async Task<IActionResult> Index()
         {
-            var usuarioId = ObtenerUsuarioId();
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Challenge(); // o RedirectToAction("Login", "Account");
+
             var ingresos = await _ingresoService.ObtenerIngresosPorUsuarioAsync(usuarioId);
             return View("Index", ingresos);
         }
@@ -33,7 +40,8 @@ namespace WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(decimal monto, DateTime fecha)
         {
-            var usuarioId = ObtenerUsuarioId();
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Challenge();
 
             if (monto <= 0)
             {
@@ -57,7 +65,9 @@ namespace WebApp.Controllers
         // GET: /Ingreso/Total
         public async Task<IActionResult> Total()
         {
-            var usuarioId = ObtenerUsuarioId();
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Challenge();
+
             var total = await _ingresoService.ObtenerIngresoTotalAsync(usuarioId);
             ViewBag.Tipo = "Total";
             return View("TotalView", total);
@@ -66,16 +76,18 @@ namespace WebApp.Controllers
         // GET: /Ingreso/Mensual?mes=5&anio=2025
         public async Task<IActionResult> Mensual(int mes, int anio)
         {
-            var usuarioId = ObtenerUsuarioId();
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Challenge();
+
             var total = await _ingresoService.ObtenerIngresoTotalMensualAsync(usuarioId, mes, anio);
             ViewBag.Tipo = $"Mensual ({mes}/{anio})";
             return View("TotalView", total);
         }
 
-        private string ObtenerUsuarioId()
+        private async Task<string?> ObtenerUsuarioIdAsync()
         {
-            // Sustituir por autenticaci�n real
-            return "usuario_demo";
+            var user = await _userManager.GetUserAsync(User);
+            return user?.Id;
         }
     }
 }
