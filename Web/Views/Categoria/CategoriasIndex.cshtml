@@ -45,7 +45,7 @@
                                 <td>@categoria.Descripcion</td>
                                 <td>@categoria.PorcentajeMaximoMensual.ToString("F2")%</td>
                                 <td>
-                                    <a class="btn btn-sm btn-info" href="@Url.Action("Details", "Categoria", new { id = categoria.Id })" title="Detalles">Detalles</a>
+                                    
                                     <a class="btn btn-sm btn-warning" href="@Url.Action("EditPorcentaje", "Categoria", new { id = categoria.Id })" title="Editar porcentaje">Editar %</a>
                                     <a class="btn btn-sm btn-danger" href="@Url.Action("Eliminar", "Categoria", new { id = categoria.Id })" title="Eliminar">Eliminar</a>
                                 </td>

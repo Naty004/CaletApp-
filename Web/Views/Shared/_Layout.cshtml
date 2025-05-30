@@ -11,61 +11,50 @@
 </head>
 <body class="index-page">
 
-        <header id="header" class="header d-flex align-items-center sticky-top">
-            <div class="container position-relative d-flex align-items-center justify-content-between">
-                <a class="logo d-flex align-items-center me-auto me-xl-0">
-                    <h1 class="sitename">Caletapp</h1>
-                </a>
+    <header id="header" class="header d-flex align-items-center sticky-top">
+        <div class="container position-relative d-flex align-items-center justify-content-between">
+            <a class="logo d-flex align-items-center me-auto me-xl-0">
+                <h1 class="sitename">Caletapp</h1>
+            </a>
 
-                <nav id="navmenu" class="navmenu">
-
-                <a href="../Login/GetLogin" class="btn btn-outline-light">Iniciar Sesión</a>
-                    <a href="../Registro/AddUsuario" class="btn btn-outline-light">Registro</a>
-
-                    <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-                </nav>
+            <nav id="navmenu" class="navmenu">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-light">Menú</a>
 
 
-            </div>
-        </header>
+                <form method="post" action="../Login/Logout" style="display:inline;">
+                    <button type="submit" class="btn btn-outline-light">Cerrar Sesión</button>
+                </form>
 
-        <main class="main">
-            @RenderBody();
+                <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+            </nav>
+        </div>
+    </header>
 
-            <!-- Hero Section -->
-            <section id="hero" class="hero section">
-                <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">
-                    <img src="~/img/logo.png" class="img-fluid animated" alt="">
-                    <h1>Bienvenido a <span>Caletapp</span></h1>
-                    <p>¡Gestiona tus gastos personales con facilidad</p>
-                    <div class="d-flex">
-                    <a href= "../Login/GetLogin" class="btn-get-started scrollto">Inicia aquí</a>
-+                    </div>
-                </div>
+    <main class="main"></main>
+        @RenderBody();
 
-            </section><!-- /Hero Section -->
-           
-        </main>
+        
 
+    </main>
 
-        <!-- Scroll Top -->
-        <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+    <!-- Scroll Top -->
+    <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
-        <!-- Preloader -->
-        <div id="preloader"></div>
+    <!-- Preloader -->
+    <div id="preloader"></div>
 
-        <!-- Vendor JS Files -->
-        <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-        <script src="~/lib/php-email-form/validate.js"></script>
-        <script src="~/lib/aos/aos.js"></script>
-        <script src="~/lib/glightbox/js/glightbox.min.js"></script>
-        <script src="~/lib/imagesloaded/imagesloaded.pkgd.min.js"></script>
-        <script src="~/lib/isotope-layout/isotope.pkgd.min.js"></script>
-        <script src="~/lib/swiper/swiper-bundle.min.js"></script>
+    <!-- Vendor JS Files -->
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/php-email-form/validate.js"></script>
+    <script src="~/lib/aos/aos.js"></script>
+    <script src="~/lib/glightbox/js/glightbox.min.js"></script>
+    <script src="~/lib/imagesloaded/imagesloaded.pkgd.min.js"></script>
+    <script src="~/lib/isotope-layout/isotope.pkgd.min.js"></script>
+    <script src="~/lib/swiper/swiper-bundle.min.js"></script>
 
-        <!-- Main JS File -->
-        <script src="~/js/main.js"></script>
+    <!-- Main JS File -->
+    <script src="~/js/main.js"></script>
 
     @RenderSection("Scripts", required: false)
-    </body>
+</body>
 </html>
