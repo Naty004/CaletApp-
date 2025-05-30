@@ -19,7 +19,7 @@ namespace Web.Models
         [Required]
         public Guid CategoriaId { get; set; }
 
-        public IEnumerable<CategoriaItem> Categorias { get; set; }
+        public List<CategoriaItem> Categorias { get; set; } = new List<CategoriaItem>();
 
         public class CategoriaItem
         {

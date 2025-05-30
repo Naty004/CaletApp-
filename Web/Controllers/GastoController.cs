@@ -7,22 +7,28 @@ using System.Linq;
 using System.Threading.Tasks;
 using Web.Models;
 using Infrastructure.Identity;
-
-
+using System.Collections.Generic;
 
 namespace WebApp.Controllers
 {
     public class GastoController : Controller
     {
         private readonly IGastoService _gastoService;
-       private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IIngresoService _ingresoService;
+        private readonly ICategoriaService _categoriaService;  // <-- Inyectar
+        private readonly UserManager<ApplicationUser> _userManager;
 
-public GastoController(IGastoService gastoService, UserManager<ApplicationUser> userManager)
-{
-    _gastoService = gastoService;
-    _userManager = userManager;
-}
-
+        public GastoController(
+            IGastoService gastoService,
+            IIngresoService ingresoService,
+            ICategoriaService categoriaService,  // <-- Inyectar
+            UserManager<ApplicationUser> userManager)
+        {
+            _gastoService = gastoService;
+            _ingresoService = ingresoService;
+            _categoriaService = categoriaService;  // <-- Asignar
+            _userManager = userManager;
+        }
 
         // GET: /Gasto
         public async Task<IActionResult> Index()
@@ -30,26 +36,36 @@ public GastoController(IGastoService gastoService, UserManager<ApplicationUser> 
             var usuarioId = await ObtenerUsuarioIdAsync();
             if (usuarioId == null) return Unauthorized();
 
-            var gastos = await _gastoService.ObtenerGastosPorUsuarioAsync(usuarioId);
-            return View(gastos);
+            var hoy = DateTime.Today;
+            var resumen = await _ingresoService.RecalcularTopesGastoAsync(usuarioId, hoy.Month, hoy.Year);
+
+            var modelo = resumen.Select(r => new ResumenGastoViewModel
+            {
+                CategoriaId = r.Categoria.Id,
+                NombreCategoria = r.Categoria.Nombre,
+                GastoActual = r.GastoActual,
+                GastoMaximo = r.GastoMaximo,
+            }).ToList();
+
+            return View(modelo);
         }
 
         // GET: /Gasto/Create
         public async Task<IActionResult> Create()
         {
-            var categorias = await _gastoService.ObtenerGastosPorUsuarioAsync(await ObtenerUsuarioIdAsync());
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Unauthorized();
+
+            var categorias = await _categoriaService.ObtenerCategoriasVisiblesPorUsuarioAsync(usuarioId);
 
             var vm = new GastoCreateViewModel
             {
                 Fecha = DateTime.Today,
-                Categorias = categorias
-                    .Select(g => g.Categoria)
-                    .Distinct()
-                    .Select(c => new GastoCreateViewModel.CategoriaItem
-                    {
-                        Id = c.Id,
-                        Nombre = c.Nombre
-                    })
+                Categorias = categorias.Select(c => new GastoCreateViewModel.CategoriaItem
+                {
+                    Id = c.Id,
+                    Nombre = c.Nombre
+                }).ToList()
             };
 
             return View(vm);
@@ -78,6 +94,9 @@ public GastoController(IGastoService gastoService, UserManager<ApplicationUser> 
                     model.CategoriaId,
                     usuarioId
                 );
+
+                // Recalcular topes luego de agregar gasto
+                await _ingresoService.RecalcularTopesGastoAsync(usuarioId, model.Fecha.Month, model.Fecha.Year);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -108,9 +127,20 @@ public GastoController(IGastoService gastoService, UserManager<ApplicationUser> 
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarConfirmado(Guid id)
         {
+            var usuarioId = await ObtenerUsuarioIdAsync();
+            if (usuarioId == null) return Unauthorized();
+
             try
             {
+                var gastos = await _gastoService.ObtenerGastosPorUsuarioAsync(usuarioId);
+                var gasto = gastos.FirstOrDefault(g => g.Id == id);
+                if (gasto == null) return NotFound();
+
                 await _gastoService.EliminarGastoYReajustarAsync(id);
+
+                // Recalcular topes luego de eliminar gasto
+                await _ingresoService.RecalcularTopesGastoAsync(usuarioId, gasto.Fecha.Month, gasto.Fecha.Year);
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -174,18 +204,16 @@ public GastoController(IGastoService gastoService, UserManager<ApplicationUser> 
             return null;
         }
 
-        private async Task<IEnumerable<GastoCreateViewModel.CategoriaItem>> ObtenerCategoriasParaViewModel(string usuarioId)
+        private async Task<List<GastoCreateViewModel.CategoriaItem>> ObtenerCategoriasParaViewModel(string usuarioId)
         {
-            var gastos = await _gastoService.ObtenerGastosPorUsuarioAsync(usuarioId);
+            var categorias = await _categoriaService.ObtenerCategoriasVisiblesPorUsuarioAsync(usuarioId);
 
-            return gastos
-                .Select(g => g.Categoria)
-                .Distinct()
-                .Select(c => new GastoCreateViewModel.CategoriaItem
-                {
-                    Id = c.Id,
-                    Nombre = c.Nombre
-                });
+            return categorias.Select(c => new GastoCreateViewModel.CategoriaItem
+            {
+                Id = c.Id,
+                Nombre = c.Nombre
+            }).ToList(); 
         }
+
     }
 }

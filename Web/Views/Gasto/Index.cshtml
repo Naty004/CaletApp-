@@ -1,43 +1,42 @@
-@model IEnumerable<Domain.Gasto>
+@model List<Web.Models.ResumenGastoViewModel>
 
 @{
-    ViewData["Title"] = "Gastos Registrados";
+    ViewData["Title"] = "Resumen de Gastos";
 }
 
-<h2 class="mb-4">Gastos Registrados</h2>
+<h2>Resumen de Gastos por Categoría</h2>
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">No se han registrado gastos aún.</div>
-}
-else
-{
-    <table class="table table-striped">
-        <thead class="table-dark">
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Categoría</th>
+            <th>Gasto Actual</th>
+            <th>Máximo Permitido</th>
+            <th>Porcentaje Usado</th>
+            <th>Indicador</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            var color = item.ColorSemaforo;
             <tr>
-                <th>Descripción</th>
-                <th>Monto</th>
-                <th>Fecha</th>
-                <th>Categoría</th>
-                <th></th>
+                <td>@item.NombreCategoria</td>
+                <td>@item.GastoActual.ToString("C")</td>
+                <td>@item.GastoMaximo.ToString("C")</td>
+                <td>@item.PorcentajeUsado %</td>
+                <td>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar"
+                             style="width:@item.PorcentajeUsado%; background-color:@color"
+                             aria-valuenow="@item.PorcentajeUsado" aria-valuemin="0" aria-valuemax="100">
+                            @item.PorcentajeUsado %
+                        </div>
+                    </div>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach (var gasto in Model)
-            {
-                <tr>
-                    <td>@gasto.Descripcion</td>
-                    <td>@gasto.Monto.ToString("C")</td>
-                    <td>@gasto.Fecha.ToShortDateString()</td>
-                    <td>@gasto.Categoria?.Nombre</td>
-                    <td>
-                        <a asp-action="Eliminar" asp-route-id="@gasto.Id" class="btn btn-danger btn-sm">Eliminar</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+        }
+    </tbody>
+</table>
 
-<a asp-action="Create" class="btn btn-primary">Agregar Gasto</a>
-
+<a asp-action="Create" class="btn btn-primary">Registrar nuevo gasto</a>
