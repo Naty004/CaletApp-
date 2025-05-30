@@ -16,28 +16,35 @@ namespace Services.Dtos
 
     public class RegistroModel
     {
-        public Guid Id { get; set; } // Necesario para edición y eliminación
+        public Guid Id { get; set; } // Se puede usar para edición o identificación
 
-        [Required]
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [Display(Name = "Nombre")]
         public string Nombres { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "El apellido es obligatorio.")]
+        [Display(Name = "Apellido")]
         public string Apellidos { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "El nombre de usuario es obligatorio.")]
+        [Display(Name = "Nombre de Usuario")]
         public string NombreUsuario { get; set; }
 
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "El correo electrónico es obligatorio.")]
+        [EmailAddress(ErrorMessage = "El formato del correo electrónico no es válido.")]
+        [Display(Name = "Correo Electrónico")]
         public string CorreoElectronico { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "La contraseña es obligatoria.")]
+        [StringLength(100, ErrorMessage = "La contraseña debe tener al menos {2} caracteres.", MinimumLength = 6)]
         [DataType(DataType.Password)]
+        [Display(Name = "Contraseña")]
         public string Contrasena { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Debe confirmar la contraseña.")]
         [DataType(DataType.Password)]
         [Compare("Contrasena", ErrorMessage = "Las contraseñas no coinciden.")]
+        [Display(Name = "Confirmar Contraseña")]
         public string ConfirmarContrasena { get; set; }
     }
 }

@@ -1,29 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Services.Dtos
 {
     public class LoginModels
     {
         public List<LoginModel> Usuarios { get; set; }
+
         public LoginModels()
         {
             Usuarios = new List<LoginModel>();
         }
     }
 
-    public class LoginModel()
+    public class LoginModel
     {
-        [Required]
-        [EmailAddress]
-        public required string CorreoElectronico { get; set; }
+        [Required(ErrorMessage = "El correo electrónico es obligatorio.")]
+        [EmailAddress(ErrorMessage = "El formato del correo no es válido.")]
+        public string CorreoElectronico { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "La contraseña es obligatoria.")]
         [DataType(DataType.Password)]
-        public required string Contrasena { get; set; }
+        public string Contrasena { get; set; }
     }
 }

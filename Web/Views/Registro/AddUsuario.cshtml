@@ -1,9 +1,9 @@
-﻿@using Services.Dtos;
+﻿@model Services.Dtos.RegistroModel
+
 @{
-    ViewData["Title"] = "Registro de Usuario";
+    ViewData["Title"] = "Registro";
     Layout = null;
 }
-@model RegistroModel;
 
 <!DOCTYPE html>
 <html lang="es">
@@ -14,38 +14,71 @@
     <link rel="stylesheet" href="~/css/Registro.css" />
 </head>
 <body>
-    <div class="registro-container">
-        <h2>Registro</h2>
+    <div class="bienvenido">
+        <h1>¡Crea tu cuenta!</h1>
+        <h1>Empieza a controlar tus gastos</h1>
+    </div>
+
+    <div class="login-container">
+        <h2 class="title">Registro de Usuario</h2>
+
+        @* Muestra errores generales del ModelState *@
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+        {
+            <div class="alert alert-danger">
+                @foreach (var error in ViewData.ModelState[string.Empty].Errors)
+                {
+                    <p>@error.ErrorMessage</p>
+                }
+            </div>
+        }
+
         <form asp-action="AddUsuario" method="post">
             <div class="row">
-                <div class="col-md-6">
-                    <label>Nombres</label>
-                    <input asp-for="Nombres" class="form-control" placeholder="Diligenciar nombres" />
+                <div class="col-md-12">
+                    <label asp-for="Nombres"></label>
+                    <input asp-for="Nombres" class="form-control" placeholder="Diligenciar nombre" />
+                    <span asp-validation-for="Nombres" class="text-danger"></span>
                 </div>
-                <div class="col-md-6">
-                    <label>Apellidos</label>
-                    <input asp-for="Apellidos" class="form-control" placeholder="Diligenciar apellidos" />
+
+                <div class="col-md-12">
+                    <label asp-for="Apellidos"></label>
+                    <input asp-for="Apellidos" class="form-control" placeholder="Diligenciar apellido" />
+                    <span asp-validation-for="Apellidos" class="text-danger"></span>
                 </div>
-                <div class="col-md-6">
-                    <label>Nombre de usuario</label>
-                    <input asp-for="NombreUsuario" class="form-control" placeholder="Diligenciar nombre de usuario" />
+
+                <div class="col-md-12">
+                    <label asp-for="NombreUsuario"></label>
+                    <input asp-for="NombreUsuario" class="form-control" placeholder="Nombre de usuario" />
+                    <span asp-validation-for="NombreUsuario" class="text-danger"></span>
                 </div>
-                <div class="col-md-6">
-                    <label>Correo electrónico</label>
-                    <input asp-for="CorreoElectronico" class="form-control" placeholder="Diligenciar correo" />
+
+                <div class="col-md-12">
+                    <label asp-for="CorreoElectronico"></label>
+                    <input asp-for="CorreoElectronico" class="form-control" placeholder="Correo electrónico" />
+                    <span asp-validation-for="CorreoElectronico" class="text-danger"></span>
                 </div>
-                <div class="col-md-6">
-                    <label>Contraseña</label>
-                    <input asp-for="Contrasena" class="form-control" type="password" placeholder="Diligenciar contraseña" />
+
+                <div class="col-md-12">
+                    <label asp-for="Contrasena"></label>
+                    <input asp-for="Contrasena" class="form-control" type="password" placeholder="Contraseña" />
+                    <span asp-validation-for="Contrasena" class="text-danger"></span>
                 </div>
-                <div class="col-md-6">
-                    <label>Confirmar contraseña</label>
+
+                <div class="col-md-12">
+                    <label asp-for="ConfirmarContrasena"></label>
                     <input asp-for="ConfirmarContrasena" class="form-control" type="password" placeholder="Confirmar contraseña" />
+                    <span asp-validation-for="ConfirmarContrasena" class="text-danger"></span>
                 </div>
             </div>
-            <button type="submit" class="btn btn-registrar">Registrarse</button>
-            <a href="/Login/GetLogin" class="enlace-regresar">Regresar</a>
+
+            <button type="submit" class="btn btn-ingresar mt-3">Registrarse</button>
+            <a href="/Login/GetLogin" class="enlace-regresar">¿Ya tienes cuenta? Inicia sesión</a>
         </form>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
 </body>
 </html>

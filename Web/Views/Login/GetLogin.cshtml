@@ -1,25 +1,9 @@
 ﻿@using Services.Dtos;
+@model LoginModel
 @{
     ViewData["Title"] = "Login";
     Layout = null;
 }
-@model LoginModel;
-
-<!--<form asp-action="GetLogin" method="post">
-    <div class="form-group">
-        <label asp-for="CorreoElectronico">Correo Electrónico</label>
-        <input asp-for="CorreoElectronico" type="email" class="form-control" />
-        <span asp-validation-for="CorreoElectronico" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Contrasena">Contraseña</label>
-        <input asp-for="Contrasena" type="password" class="form-control" />
-        <span asp-validation-for="Contrasena" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-success">Iniciar sesión</button>
-</form>-->
 
 <!DOCTYPE html>
 <html lang="es">
@@ -34,23 +18,36 @@
         <h1>¡Bienvenido!</h1>
         <h1>Controla tus gastos con inteligencia</h1>
     </div>
+
     <div class="login-container">
         <h2 class="title">Iniciar sesión</h2>
+
+        @* Mostrar errores generales (como "Credenciales incorrectas") *@
+        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
         <form asp-action="GetLogin" method="post">
             <div class="row">
-                <div class="col-md-12">
-                    <label>Correo electrónico</label>
+                <div class="col-md-12 mb-3">
+                    <label asp-for="CorreoElectronico" class="form-label">Correo electrónico</label>
                     <input asp-for="CorreoElectronico" class="form-control" placeholder="Diligenciar correo" />
+                    <span asp-validation-for="CorreoElectronico" class="text-danger"></span>
                 </div>
-                <div class="col-md-12">
-                    <label>Contraseña</label>
+
+                <div class="col-md-12 mb-3">
+                    <label asp-for="Contrasena" class="form-label">Contraseña</label>
                     <input asp-for="Contrasena" class="form-control" type="password" placeholder="Diligenciar contraseña" />
+                    <span asp-validation-for="Contrasena" class="text-danger"></span>
                 </div>
-                
             </div>
+
             <button type="submit" class="btn btn-ingresar">Ingresar</button>
-            <a href="/Registro/AddUsuario" class="enlace-regresar">¿Aun no estas registrado? Registrate</a>
+            <a href="/Registro/AddUsuario" class="enlace-regresar">¿Aun no estás registrado? Regístrate</a>
         </form>
     </div>
+
+    @* Scripts para validación en cliente *@
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
 </body>
 </html>
